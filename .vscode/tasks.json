@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dune",
+			"problemMatcher": [
+				"$ocamlc"
+			],
+			"group": "build",
+			"label": "dune: build "
+		},
+		{
+            "label": "dune-build",
+            "type": "shell",
+            "command": "dune build",
+            "group": "build",
+            "problemMatcher": [
+                "$ocamlc"
+            ]
+        },
+	]
+}
