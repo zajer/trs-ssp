@@ -1,5 +1,5 @@
-(executable
-  (name example1)
+(executables
+  (names example1 example2)
   (libraries policy )
   (modes (native exe) )
 ) 
