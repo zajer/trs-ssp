@@ -44,26 +44,31 @@ let mf_m =
   [|[f_null];[f_null];[f3;f4]|];
   [|[f5;f6];[f_null];[f_null]|]
 |];;
-
+module StringTools = Tools.Make(Example)
 let multip_test_1 _ = 
   let ns = 3 in
-  let mk0_m = Array.make ns []
-  and init_state = "" in
-  let init_c_series = [ Elem init_state ] in 
-  let _ = Array.set mk0_m 0 init_c_series 
+  let mk0 = StringTools.make_init_state_matrix_singleton ~num_of_states:ns (Elem "")
   and exp_mk1_m = [| [Empty];[Elem "A";Elem "B"];[Empty]|]
-  and mk0 = {ExampleCombination.matrix = mk0_m;step=0}
   and mf = {ExampleCombination.matrix = mf_m; num_of_states=ns} in
   let mk1 = ExampleCombination.multiply mk0 mf 
   and exp_mk1 = {ExampleCombination.matrix = exp_mk1_m; step=1} in
-  let _ = assert_equal exp_mk1 mk1 in
-  ExampleCombination.print_km mk1.matrix
-  
+  (*ExampleCombination.print_km mk1.matrix ;*)
+  assert_equal exp_mk1 mk1
+let multip_test_2 _ = 
+  let ns = 3 
+  and mk1_m = [| [Empty];[Elem "A";Elem "B"];[Empty]|] 
+  and exp_mk2_m = [| [Empty;Empty;Empty;Empty;Empty];[Empty;Empty;Empty;Empty;Empty];[Empty;Elem "AC";Elem "BC";Elem "AD";Elem "BD";Empty]|] in
+  let mk1 = StringTools.make_state_matrix mk1_m 1
+  and mf = {ExampleCombination.matrix = mf_m; num_of_states=ns} in
+  let mk2 = ExampleCombination.multiply mk1 mf 
+  and exp_mk2 = {ExampleCombination.matrix = exp_mk2_m; step=2} in
+  (*ExampleCombination.print_km mk2.matrix ;*)
+  assert_equal exp_mk2 mk2
 
   let suite =
     "Test suite" >::: [
       "Multiplication test 1">:: multip_test_1;
-      
+      "Multiplication test 2">:: multip_test_2;
   ]
 
 let () =

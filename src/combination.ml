@@ -16,32 +16,26 @@ module StatesCombination( S:State ) =
   type k_matrix = { matrix:S.k array; step:int}
   type f_matrix = { matrix:S.f list array array; num_of_states:int}
   let f_at_cs (f:S.f) k t =
-    List.fold_left (fun res c -> f c t :: res) [] k
+    List.map (fun c -> f c t) k
   let convolute k f_list t =
-    List.fold_left (fun res f -> f_at_cs f k t @ res) [] f_list
+    List.fold_right (fun f res -> f_at_cs f k t @ res) f_list []
   let array_out_of_column fm column =
     let res_as_list = Array.fold_left (fun res_as_list row -> Array.get row column :: res_as_list) [] fm.matrix
     in
       List.rev res_as_list |> Array.of_list
-  let multiply ?(filter_fun= fun _ -> true) (km:k_matrix) fm =
-    let res_as_list_reversed,_ = Array.fold_left 
-      (fun (result_as_list,i) _ -> 
-        let column_of_f_series = array_out_of_column fm i in
-        let new_k_elem,_ = 
-          Array.fold_left (fun (res,i) k_series -> 
-            let part_res = convolute k_series (Array.get column_of_f_series i) km.step in 
-            res@part_res,i+1
-          )
-          ([],0) 
-          km.matrix in
-            (new_k_elem |> List.filter filter_fun ):: result_as_list,i+1
-      )
-      ([],0) 
-      (Array.make fm.num_of_states [])
-    in
-      { matrix=Array.of_list (res_as_list_reversed |> List.rev );step = km.step+1}
+  let multiply ?(filter_fun= fun _ -> true) (km:k_matrix) fm =    
+    let new_km_m = 
+      Array.mapi 
+      (
+        fun column _-> 
+          let column_of_fs = array_out_of_column fm column in
+          let elements_of_new_k_elem = Array.mapi (fun row k_elem -> convolute k_elem ( Array.get column_of_fs row) km.step ) km.matrix in
+          Array.to_list elements_of_new_k_elem |> List.flatten |> List.filter filter_fun
+      ) 
+      (Array.make fm.num_of_states []) in
+    { matrix=new_km_m;step = km.step+1}
   let print_km mk = 
-    Array.iteri (fun i k-> print_endline ("kolumna "^ string_of_int i) ; S.k_to_string k |> print_string ; print_newline () ) mk
+    Array.iteri (fun i k-> print_endline ("#column "^ string_of_int i) ; S.k_to_string k |> print_string ; print_newline () ) mk
 end
 
 
