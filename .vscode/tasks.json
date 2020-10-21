@@ -17,6 +17,15 @@
             "problemMatcher": [
                 "$ocamlc"
             ]
-        },
+		},
+		{
+            "label": "dune-test",
+            "type": "shell",
+            "command": "dune runtest",
+            "group": "test",
+            "problemMatcher": [
+                "$ocamlc"
+            ]
+        }
 	]
 }

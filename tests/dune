@@ -1,0 +1,8 @@
+(tests
+  (
+    names 
+      combination_tests
+  )
+  (libraries ounit2 policy)
+)
+

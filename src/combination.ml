@@ -23,7 +23,7 @@ module StatesCombination( S:State ) =
     let res_as_list = Array.fold_left (fun res_as_list row -> Array.get row column :: res_as_list) [] fm.matrix
     in
       List.rev res_as_list |> Array.of_list
-  let multiply (km:k_matrix) fm =
+  let multiply ?(filter_fun= fun _ -> true) (km:k_matrix) fm =
     let res_as_list_reversed,_ = Array.fold_left 
       (fun (result_as_list,i) _ -> 
         let column_of_f_series = array_out_of_column fm i in
@@ -34,7 +34,7 @@ module StatesCombination( S:State ) =
           )
           ([],0) 
           km.matrix in
-            (new_k_elem ):: result_as_list,i+1
+            (new_k_elem |> List.filter filter_fun ):: result_as_list,i+1
       )
       ([],0) 
       (Array.make fm.num_of_states [])

@@ -18,14 +18,16 @@ let i_to_string (s:i) =
         |((a0,x0),(a1,x1)) ->
         "[" ^ string_of_int a0 ^ ":" ^ string_of_int x0 ^ "," ^ string_of_int a1 ^ ":" ^ string_of_int x1 ^ "]"
 let k_to_string ks =
-        List.fold_left
-                (fun accu c ->
+        List.map 
+        (
+                fun c -> 
                         match c with
-                        | Unreachable -> accu ^ ""
-                        | Reachable (((a0,x0),(a1,x1)),set) -> accu ^ ( i_to_string ((a0,x0),(a1,x1)) ^ set_of_actions_2_string set )
-                )
-                ""
-                ks
+                        | Unreachable -> ""
+                        | Reachable (((a0,x0),(a1,x1)),set) -> ( i_to_string ((a0,x0),(a1,x1)) ^ set_of_actions_2_string set )
+        ) 
+        ks
+        |> String.concat ""
+        
 end
 open Example2
 let f0 e t =
@@ -157,23 +159,29 @@ let _ = Array.set mk0_m 0 init_c_series
 module ExampleCombination = Combination.StatesCombination(Example2);;
 let mk0 = {ExampleCombination.matrix = mk0_m;step=0};;
 let mf = {ExampleCombination.matrix = mf_m; num_of_states=ns};;
-print_endline "printing time!";
-print_endline "mk0";
-ExampleCombination.print_km mk0.matrix;;
-let mk1 = ExampleCombination.multiply mk0 mf;;
-print_endline "mk1";
-ExampleCombination.print_km mk1.matrix
-let mk2 = ExampleCombination.multiply mk1 mf;;
-print_endline "mk2";
-ExampleCombination.print_km mk2.matrix
-let mk3 = ExampleCombination.multiply mk2 mf;;
-print_endline "mk3";
-ExampleCombination.print_km mk3.matrix
-let mk4 = ExampleCombination.multiply mk3 mf;;
-print_endline "mk4";
-ExampleCombination.print_km mk4.matrix
-let mk5 = ExampleCombination.multiply mk4 mf;;
+let filter_fun = fun x -> x <> Unreachable ;;
+print_endline "printing time!"
+let mk1 = ExampleCombination.multiply ~filter_fun mk0 mf;;
+let mk2 = ExampleCombination.multiply ~filter_fun  mk1 mf;;
+let mk3 = ExampleCombination.multiply ~filter_fun mk2 mf;;
+let mk4 = ExampleCombination.multiply ~filter_fun mk3 mf;;
+let mk5 = ExampleCombination.multiply ~filter_fun mk4 mf;;
 print_endline "mk5";
-ExampleCombination.print_km mk5.matrix;
+ExampleCombination.print_km mk5.matrix
+(*
+let mk6 = ExampleCombination.multiply ~filter_fun mk5 mf;;
 
-       
+let mk7 = ExampleCombination.multiply ~filter_fun mk6 mf;;
+
+let mk8 = ExampleCombination.multiply ~filter_fun mk7 mf;;
+
+let mk9 = ExampleCombination.multiply ~filter_fun mk8 mf;;
+
+let mk10 = ExampleCombination.multiply ~filter_fun mk9 mf;;
+
+let mk11 = ExampleCombination.multiply ~filter_fun mk10 mf;;
+
+let mk12 = ExampleCombination.multiply ~filter_fun mk11 mf;;
+print_endline "mk12";
+ExampleCombination.print_km mk12.matrix
+*)
