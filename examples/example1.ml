@@ -131,4 +131,13 @@ print_endline "mk3";
 ExampleCombination.print_km mk3.matrix
 let mk4 = ExampleCombination.multiply mk3 mf;;
 print_endline "mk4";
-ExampleCombination.print_km mk4.matrix;
+ExampleCombination.print_km mk4.matrix;;
+module TypedTools = Tools.Make(Example)
+let res,is_reached = TypedTools.multiply_until_state_is_reached 
+  ~filter_fun:(fun x -> if x <> Unreachable then true else false) 
+  ~limit:777
+  ~desired_state_id:5
+  mk0
+  mf;;
+print_endline "first reach of 5th state";
+ExampleCombination.print_km res.matrix

@@ -21,5 +21,20 @@ module Make (Type:Combination.State) =
       {TypedCombination.matrix = res_m;step=0}
     let make_state_matrix matrix  step=
       {TypedCombination.matrix = matrix;step}
-
+    let is_state_reached state_id (k_matrix:t) = 
+      let column = Array.get k_matrix.matrix state_id in
+      match column with
+      | [] -> false
+      | _::_ -> true 
+    let multiply_until_state_is_reached ?(filter_fun = fun _ -> true) ?(limit = -1 ) ~desired_state_id init_state f_matrix =
+      let result = ref init_state 
+      and is_reached = ref false 
+      and iter = ref 1 in
+        while not (!is_reached) || if limit <> -1 then false else !iter < limit do
+          result := TypedCombination.multiply ~filter_fun !result f_matrix;
+          is_reached := is_state_reached desired_state_id !result;
+          string_of_int !iter |> print_endline ;
+          iter := !iter +1
+        done;
+        !result,is_reached
   end
