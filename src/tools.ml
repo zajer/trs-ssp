@@ -33,7 +33,6 @@ module Make (Type:Combination.State) =
         while not (!is_reached) || if limit <> -1 then false else !iter < limit do
           result := TypedCombination.multiply ~filter_fun !result f_matrix;
           is_reached := is_state_reached desired_state_id !result;
-          string_of_int !iter |> print_endline ;
           iter := !iter +1
         done;
         !result,is_reached
