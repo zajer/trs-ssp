@@ -15,10 +15,11 @@ module StatesCombination( S:State ) =
   
   type k_matrix = { matrix:S.k array; step:int}
   type f_matrix = { matrix:S.f list array array; num_of_states:int}
-  let f_at_cs (f:S.f) k t =
-    List.map (fun c -> f c t) k
-  let convolute k f_list t =
-    List.fold_right (fun f res -> f_at_cs f k t @ res) f_list []
+  let f_at_cs filter_fun (f:S.f) k t =
+    List.map (fun c -> f c t) k |> List.filter filter_fun
+  let convolute filter_fun k f_list t =
+    List.concat_map (fun f -> f_at_cs filter_fun f k t) f_list
+    (*List.fold_right (fun f res -> f_at_cs f k t @ res) f_list []*)
   let array_out_of_column fm column =
     let res_as_list = Array.fold_left (fun res_as_list row -> Array.get row column :: res_as_list) [] fm.matrix
     in
@@ -29,8 +30,8 @@ module StatesCombination( S:State ) =
       (
         fun column _-> 
           let column_of_fs = array_out_of_column fm column in
-          let elements_of_new_k_elem = Array.mapi (fun row k_elem -> convolute k_elem ( Array.get column_of_fs row) km.step ) km.matrix in
-          Array.to_list elements_of_new_k_elem |> List.flatten |> List.filter filter_fun
+          let elements_of_new_k_elem = Array.mapi (fun row k_elem -> convolute filter_fun k_elem ( Array.get column_of_fs row) km.step ) km.matrix in
+          Array.to_list elements_of_new_k_elem |> List.flatten
       ) 
       (Array.make fm.num_of_states []) in
     { matrix=new_km_m;step = km.step+1}

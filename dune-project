@@ -1,6 +1,6 @@
 (lang dune 2.0)
 (name policy)
-(version 1.0)
+(version 1.1)
 (generate_opam_files true)
 
 (source (github zajer/state_space_policy))
