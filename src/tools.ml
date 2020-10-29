@@ -35,5 +35,5 @@ module Make (Type:Combination.State) =
           is_reached := is_state_reached desired_state_id !result;
           iter := !iter +1
         done;
-        !result,is_reached
+        !result,!is_reached
   end

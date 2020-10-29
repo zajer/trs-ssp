@@ -97,14 +97,16 @@ let f8 e t =
 
 
 let ns = 6
-let mk0_m = Array.make 6 []
 let init_state = (1,0),(2,0)
 let init_set = SetOfActions.empty
+(*
+let mk0_m = Array.make 6 []
 let init_c_series = [ (Reachable (init_state,init_set) )]
 let _ = Array.set mk0_m 0 init_c_series
-
-let mk0 = {ExampleCombination.matrix = mk0_m;step=0}
-
+let mk0' = {ExampleCombination.matrix = mk0_m;step=0}
+*)
+module TypedTools = Tools.Make(Example)
+let mk0 = TypedTools.make_init_state_matrix_singleton ~num_of_states:ns ( (Reachable (init_state,init_set)) )
 let mf_m = 
   [|
     [|[f_null];[f1;f2];[f_null];[f_null];[f_null];[f_null]|];
@@ -132,7 +134,7 @@ ExampleCombination.print_km mk3.matrix
 let mk4 = ExampleCombination.multiply mk3 mf;;
 print_endline "mk4";
 ExampleCombination.print_km mk4.matrix;;
-module TypedTools = Tools.Make(Example)
+
 let res,is_reached = TypedTools.multiply_until_state_is_reached 
   ~filter_fun:(fun x -> if x <> Unreachable then true else false) 
   ~limit:777
