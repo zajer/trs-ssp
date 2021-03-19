@@ -1,10 +1,9 @@
 
-
-module type System = sig
+module type S = sig
     type situation
     type state_trans_fun 
     type situations_in_state = Some of situation Seq.t | Not_reachable
-    type courses_between_situations = Some of state_trans_fun Seq.t | No_transition
+    type courses_between_situations = Some of state_trans_fun Seq.t | No_transitions
     (*
     type system_situation_matrix = situation Seq.t array
     type system_transformation_matrix = state_trans_fun Seq.t array array
@@ -46,22 +45,33 @@ struct
                 sits
             in
             Some result
+    let _merge_situations_at_state sits1 sits2 = 
+        match sits1, sits2 with
+        | Not_reachable, Not_reachable -> Not_reachable
+        | Some s1, Not_reachable -> Some s1
+        | Not_reachable, Some s2 -> Some s2
+        | Some s1, Some s2 -> Some (Seq.append s1 s2)
     let multiply situations_mx trans_mx =
         let result = Array.mapi 
         (
             fun result_column_id _ -> 
                 let column_of_functions = Square_matrix.column trans_mx result_column_id in
-                let new_situation_in_state = 
+                let new_situations_in_state_to_flatten = 
                     Array.mapi 
                         (
                             fun state_id situations_in_state -> convolute situations_in_state (Array.get column_of_functions state_id)
                         ) 
                         situations_mx 
                     in
-                new_situation_in_state
+                let new_situations_in_state = Array.fold_left 
+                    (fun res_situation sits_to_merge -> _merge_situations_at_state res_situation sits_to_merge ) 
+                    Not_reachable 
+                    new_situations_in_state_to_flatten
+                in
+                    new_situations_in_state
         ) 
         (Array.make trans_mx.length [])
         in
-        { Square_matrix.elements=result; length=trans_mx.length }
+            result
 
 end
