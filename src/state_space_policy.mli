@@ -9,6 +9,7 @@ module type SSP = sig
     val convolute : situations_in_state -> courses_between_situations -> situations_in_state
     val multiply : system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
     val init_situation_in_state : situation -> situations_in_state
+    val init_situation_matrix : situations_in_state -> state_idx:int -> num_of_states:int -> system_situation_matrix
 end
 
 module Make ( SS : State_space.SS) : SSP with type situation = SS.situation and type state_trans_fun = SS.state_trans_fun

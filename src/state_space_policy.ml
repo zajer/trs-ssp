@@ -17,6 +17,7 @@ module type SSP = sig
     val convolute : situations_in_state -> courses_between_situations -> situations_in_state
     val multiply : system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
     val init_situation_in_state : situation -> situations_in_state
+    val init_situation_matrix : situations_in_state -> state_idx:int -> num_of_states:int -> system_situation_matrix
 end
 
 module Make ( SS : State_space.SS) =
@@ -78,4 +79,8 @@ struct
         let res =  Seq.cons sit (Seq.empty)
         in
             (Situations res)
+    let init_situation_matrix sit_in_state ~state_idx ~num_of_states =
+        let result = Array.make num_of_states Not_reachable in
+        Array.set result state_idx sit_in_state;
+        result
 end
