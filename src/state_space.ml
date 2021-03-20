@@ -6,6 +6,7 @@ module type SS  = sig
     type situation =  { current_state:state; current_walk:walk }
     (*type sit_trans_fun = situation -> state_trans_fun -> situation*)
     val advance_situation : situation -> state_trans_fun -> situation
+    val init_situation : state -> situation
 end
 
 module Make ( S : State.S ) = 
@@ -19,4 +20,6 @@ module Make ( S : State.S ) =
         let new_state = trans_fun.S.func situation.current_state 
         and new_walk = trans_fun :: situation.current_walk in
         { current_state=new_state; current_walk=new_walk }
+    let init_situation state = 
+        { current_state=state; current_walk=[] }
 end
