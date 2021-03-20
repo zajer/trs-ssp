@@ -1,4 +1,4 @@
-module type S = sig
+module type SSP = sig
     type situation
     type state_trans_fun 
     type situations_in_state = Situations of situation Seq.t | Not_reachable
@@ -11,4 +11,4 @@ module type S = sig
     val init_situation_in_state : situation -> situations_in_state
 end
 
-module Make ( S : State_space.SS) : S with type situation = S.situation and type state_trans_fun = S.state_trans_fun
+module Make ( SS : State_space.SS) : SSP with type situation = SS.situation and type state_trans_fun = SS.state_trans_fun

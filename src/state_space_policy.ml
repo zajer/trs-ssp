@@ -1,5 +1,5 @@
 
-module type S = sig
+module type SSP = sig
     type situation
     type state_trans_fun 
     type situations_in_state = Situations of situation Seq.t | Not_reachable
@@ -19,10 +19,10 @@ module type S = sig
     val init_situation_in_state : situation -> situations_in_state
 end
 
-module Make ( S : State_space.SS) =
+module Make ( SS : State_space.SS) =
 struct
-    type situation = S.situation 
-    type state_trans_fun = S.state_trans_fun
+    type situation = SS.situation 
+    type state_trans_fun = SS.state_trans_fun
     type situations_in_state = Situations of situation Seq.t | Not_reachable
     type courses_between_situations = Courses of state_trans_fun Seq.t | No_transitions
     type system_situation_matrix = situations_in_state array
@@ -38,7 +38,7 @@ struct
                 (
                     fun sit -> 
                         let new_situations = Seq.map 
-                            (fun trans_fun -> S.advance_situation sit trans_fun) 
+                            (fun trans_fun -> SS.advance_situation sit trans_fun) 
                             trans_funs
                             in
                             new_situations
