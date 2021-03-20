@@ -5,5 +5,6 @@ module type S = sig
     type trans_fun = { func:t->t; transition_idx:int}
     
     val parse_trans_fun : trans_fun_raw -> trans_fun
+    val num_of_states : unit -> int
 end
 
