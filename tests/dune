@@ -2,6 +2,7 @@
   (
     names 
       combination_tests
+      state_space_policy_tests
   )
   (libraries ounit2 policy)
 )
