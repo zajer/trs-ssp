@@ -69,10 +69,16 @@ let test_make_transformation_matrix_1 _ =
         ~cmp:_compare_transformation_matrices
         expected_matrix
         result_matrix
+let test_is_state_reached_1 _ = 
+    let situation_matrix = Array.make 777 DF.SSP.Not_reachable in
+    Array.set situation_matrix 7 (DF.SSP.Situations Seq.empty);
+    assert_bool "State suppose to reachable" (DF.is_state_reached situation_matrix 7)
+
 let suite =
 "Frontend tests" >::: [
     "Import trans funs test 1">:: test_import_trans_funs_1;
     "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
+    "State reachability test 1">:: test_is_state_reached_1
 ]
 
 let () =
