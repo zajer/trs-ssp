@@ -73,12 +73,109 @@ let test_is_state_reached_1 _ =
     let situation_matrix = Array.make 777 DF.SSP.Not_reachable in
     Array.set situation_matrix 7 (DF.SSP.Situations Seq.empty);
     assert_bool "State suppose to reachable" (DF.is_state_reached situation_matrix 7)
+let _compare_situations s1 s2 =
+    s1.DF.SS.current_state = s2.DF.SS.current_state && 
+    if List.compare_lengths s1.current_walk s2.current_walk = 0 then
+        List.for_all2 (fun we1 we2 -> we1.DummyState2A_Parsable.transition_idx = we2.DummyState2A_Parsable.transition_idx) s1.current_walk s2.current_walk
+    else
+        false
+let _compare_list_of_situations los1 los2 =
+    List.for_all 
+        (
+            fun s1 -> 
+                List.exists (fun s2 -> _compare_situations s1 s2) los2
+        )
+        los1
+let _state_2_string ((ai1,t1),(ai2,t2)) =
+    "("^(string_of_int ai1)^","^(string_of_int t1)^"),"^
+    "("^(string_of_int ai2)^","^(string_of_int t2)^")"
+let _trans_func_2_string stf =
+    string_of_int stf.DummyState2A_Parsable.transition_idx
+let _walk_2_string w = 
+    let result = List.map (fun stf -> _trans_func_2_string stf ) w |> String.concat "," in
+    "["^result^"]"
+let _situation_2_string s = 
+    let state = s.DF.SS.current_state |> _state_2_string
+    and walk = s.current_walk |> _walk_2_string in
+    "{"^state^","^walk^"}"
+let _list_of_situations_2_string = (fun los -> List.map (fun s-> _situation_2_string s) los |> String.concat "," )
+let _situation_in_state_2_string sits_in_state state_idx =
+    match sits_in_state with
+    | DF.SSP.Not_reachable -> (string_of_int state_idx)^":Not reachable"
+    | DF.SSP.Situations s -> (string_of_int state_idx)^(List.of_seq s |> _list_of_situations_2_string)
+let _compare_situations s1 s2 =
+    s1.DF.SS.current_state = s2.DF.SS.current_state && 
+    if List.compare_lengths s1.current_walk s2.current_walk = 0 then
+        List.for_all2 (fun we1 we2 -> we1.DummyState2A_Parsable.transition_idx = we2.DummyState2A_Parsable.transition_idx) s1.current_walk s2.current_walk
+    else
+        false
+let _compare_list_of_situations los1 los2 =
+    List.for_all 
+        (
+            fun s1 -> 
+                List.exists (fun s2 -> _compare_situations s1 s2) los2
+        )
+        los1
+let _compare_array_of_situations_in_state losis1 losis2 =
+    Array.for_all2
+        (
+            fun sis1 sis2 -> 
+                match sis1,sis2 with
+                | DF.SSP.Not_reachable,DF.SSP.Not_reachable -> true
+                | Not_reachable , Situations _ -> false
+                | Situations _ , Not_reachable -> false
+                | Situations s1, Situations s2 -> _compare_list_of_situations (List.of_seq s1) (List.of_seq s2)
+        )
+        losis1
+        losis2
+let test_search_for_situation_in_state_1 _ =
+    let init_state = (1,0),(2,0) 
+    and state_trans_func_1 = {DummyState2A_Parsable.func= (fun ((a1,t1),(a2,t2)) -> ((a2,t2+7),(a1,t1+3)));transition_idx=3} 
+    and state_trans_func_2 = {DummyState2A_Parsable.func= (fun ((a1,t1),(a2,t2)) -> ((a1,t1+4),(a2,t2+5)));transition_idx=7} in
+    let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
+    and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
+    and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
+    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
+    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
+    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
+    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts in
+    let result_sits_matrix,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:777 
+    and expected_sits_matrix = Array.make 3 DF.SSP.Not_reachable
+    and expected_num_of_steps = 1
+    and expected_reachability_flag = true
+    in
+    Array.set expected_sits_matrix 1 (DF.SSP.Situations (Seq.return { DF.SS.current_state=((2,7),(1,3));current_walk=[state_trans_func_1] } ));
+    Array.set expected_sits_matrix 2 (DF.SSP.Situations (Seq.return { DF.SS.current_state=((1,4),(2,5));current_walk=[state_trans_func_2] } ));
+    assert_equal
+        ~msg:"State suppose to reached" 
+        expected_reachability_flag
+        is_reached;
+    assert_equal
+        ~msg:"Result should be computed with one step"
+        ~printer:(fun i -> string_of_int i)
+        expected_num_of_steps
+        steps;
+    assert_equal
+        ~msg:"Result situation matrix is not equal to expected"
+        ~printer:
+            (
+                fun sm ->
+                    Array.mapi 
+                        (fun state_id sits_in_state -> _situation_in_state_2_string sits_in_state state_id ) 
+                        sm 
+                    |> Array.to_list |> String.concat " ; " 
+            )
+        ~cmp:_compare_array_of_situations_in_state
+        expected_sits_matrix
+        result_sits_matrix
 
 let suite =
 "Frontend tests" >::: [
     "Import trans funs test 1">:: test_import_trans_funs_1;
     "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
-    "State reachability test 1">:: test_is_state_reached_1
+    "State reachability test 1">:: test_is_state_reached_1;
+    "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1
 ]
 
 let () =

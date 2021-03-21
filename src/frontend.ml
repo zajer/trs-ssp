@@ -95,7 +95,7 @@ module Make ( S : State.S ) = struct
   let search_for_situation_in_state sits_matrix trans_matrix ~state_idx ~max_num_of_steps = 
     let result = ref sits_matrix 
     and is_reached = ref false 
-    and iter = ref 1 in
+    and iter = ref 0 in
       while not (!is_reached) || if max_num_of_steps <> -1 then false else !iter < max_num_of_steps do
         result := SSP.multiply sits_matrix trans_matrix;
         is_reached := is_state_reached !result state_idx;
