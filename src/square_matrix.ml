@@ -15,3 +15,29 @@ let make elts =
         {elements=elts;length=number_of_rows}
     else
         raise (Invalid_argument "Provided elements do not create square matrix")
+let init init_fun length= 
+    let elts = Array.init length (fun row -> Array.init length (fun column -> init_fun ~row ~column )) in
+    {elements=elts;length}
+let init_single init_elem length =
+    let elts = Array.init length (fun _ -> Array.init length (fun _ -> init_elem )) in
+    {elements=elts;length}
+let update matrix ~row ~column new_val = 
+    Array.set 
+        matrix.elements
+        row 
+        (
+            let row_to_update = (Array.get matrix.elements row) in
+            Array.set 
+                row_to_update
+                column 
+                new_val;
+                row_to_update
+        )
+let to_string func matrix =
+    Array.map 
+    (
+        fun row -> 
+            Array.map (fun e -> func e) row |> Array.to_list |> String.concat "\t"
+    )
+    matrix.elements
+    |> Array.to_list |> String.concat "\n"

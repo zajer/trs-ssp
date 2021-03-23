@@ -110,7 +110,12 @@ module Make ( S : State.S ) = struct
   type system_transformation_matrix = SSP.system_transformation_matrix
 
   let make_system_transformation_matrix trans_funs =
-    let array_matrix_of_trans_funs = Array.make (S.num_of_states ()) (Array.make (S.num_of_states ()) []) in
+    let array_matrix_of_trans_funs = Array.init 
+      (S.num_of_states ()) 
+      (fun _ -> Array.init 
+        (S.num_of_states ()) 
+        (fun _ -> [])
+      ) in
     List.iter 
       (
         fun trans_fun -> 

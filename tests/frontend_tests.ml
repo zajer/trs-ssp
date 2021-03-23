@@ -61,18 +61,6 @@ let test_import_dest_states_1 _ =
       imported_dest_states
 module DF = Frontend.Make(DummyState2A_Parsable)
 
-let _update_value_of_square_array array ~row ~column new_val = 
-    Array.set 
-        array
-        row 
-        (
-            let row_to_update = (Array.get array row) in
-            Array.set 
-                row_to_update
-                column 
-                new_val;
-                row_to_update
-        )
 let _compare_transformation_matrices m1 m2 =
     if m1.Square_matrix.length <> m2.Square_matrix.length then
         false
@@ -96,6 +84,9 @@ let _compare_transformation_matrices m1 m2 =
             )
             m1.elements
             m2.elements
+let _courses_between_sits_to_string c =
+    let lot = List.of_seq c in
+    List.map ( fun tf -> "tid:"^(string_of_int tf.DummyState2A_Parsable.transition_idx)) lot |> String.concat ";"
 let test_make_transformation_matrix_1 _ =
     let matrix_input = [
         {State.permutation_with_time_shift=[(1,2);(2,0)];react_label="r1";from_idx=0;to_idx=1;transition_idx=1};
@@ -106,15 +97,20 @@ let test_make_transformation_matrix_1 _ =
     and state_trans_func_2 = {DummyState2A_Parsable.func=DummyState2A_Parsable.fun_2;transition_idx=3} 
     and state_trans_func_3 = {DummyState2A_Parsable.func=DummyState2A_Parsable.fun_3;transition_idx=2} 
     in
-    let expected_matrix_array = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
-    _update_value_of_square_array expected_matrix_array ~row:0 ~column:1 (DF.SSP.Courses (Seq.return state_trans_func_1));
-    _update_value_of_square_array expected_matrix_array ~row:1 ~column:2 (DF.SSP.Courses (Seq.return state_trans_func_2));
-    _update_value_of_square_array expected_matrix_array ~row:2 ~column:0 (DF.SSP.Courses (Seq.return state_trans_func_3));
-    let expected_matrix = Square_matrix.make expected_matrix_array
+    let expected_matrix = Square_matrix.init_single DF.SSP.No_transitions 3
     and result_matrix = DF.make_system_transformation_matrix matrix_input in
+    Square_matrix.update expected_matrix ~row:0 ~column:1 (DF.SSP.Courses (Seq.return state_trans_func_1));
+    Square_matrix.update expected_matrix ~row:1 ~column:2 (DF.SSP.Courses (Seq.return state_trans_func_2));
+    Square_matrix.update expected_matrix ~row:2 ~column:0 (DF.SSP.Courses (Seq.return state_trans_func_3));
     assert_equal
         ~msg:"Result transformation matrix is not equal to expected"
         ~cmp:_compare_transformation_matrices
+        ~printer:
+            ( fun mx ->
+                let str = Square_matrix.to_string (fun sotf -> match sotf with | DF.SSP.No_transitions -> "NTS" | Courses c -> _courses_between_sits_to_string c ) mx 
+                in 
+                    ("\n"^str)
+            )
         expected_matrix
         result_matrix
 let test_is_state_reached_1 _ = 
@@ -157,7 +153,7 @@ let _list_of_situations_2_string = (fun los -> List.map (fun s-> _situation_2_st
 let _situation_in_state_2_string sits_in_state state_idx =
     match sits_in_state with
     | DF.SSP.Not_reachable -> (string_of_int state_idx)^":Not reachable"
-    | DF.SSP.Situations s -> (string_of_int state_idx)^(List.of_seq s |> _list_of_situations_2_string)
+    | DF.SSP.Situations s -> (string_of_int state_idx)^":"^(List.of_seq s |> _list_of_situations_2_string)
 let _situation_matrix_2_string sm =
     Array.mapi 
         (fun state_id sits_in_state -> _situation_in_state_2_string sits_in_state state_id ) 
@@ -195,11 +191,10 @@ let test_search_for_situation_in_state_1 _ =
     let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
-    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
-    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
-    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
-    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
-    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts in
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
+    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let result_sits_matrix,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:777 
     and expected_sits_matrix = Array.make 3 DF.SSP.Not_reachable
     and expected_num_of_steps = 1
@@ -229,12 +224,10 @@ let test_search_for_situation_in_state_2 _ =
     let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
     (*and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)*)
     and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
-    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
-    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
-    (*_update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;*)
-    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
-    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts 
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
+    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3 
     and num_of_steps = 777 in
+    Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let _,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:num_of_steps
     and expected_num_of_steps = num_of_steps
     and expected_reachability_flag = false
@@ -255,18 +248,16 @@ let test_search_for_situation_in_state_3 _ =
     let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_1_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
-    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
-    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
-    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
-    _update_value_of_square_array trans_matrix_elts ~row:1 ~column:2 courses_between_states_1_2;
-    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts 
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
+    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3
     and num_of_steps = 777 in
-    let sm,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
+    let _,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
     and expected_num_of_steps = num_of_steps
     and expected_reachability_flag = false in
-    print_endline (_situation_matrix_2_string sm);
     assert_equal
-        ~msg:("Result should be computed with "^(string_of_int num_of_steps)^" steps")
+        ~msg:("Result should be computed in "^(string_of_int num_of_steps)^" steps")
         ~printer:(fun i -> string_of_int i)
         expected_num_of_steps
         steps;

@@ -55,19 +55,25 @@ struct
     let multiply filtering_fun situations_mx trans_mx =
         let result = Array.mapi 
         (
-            fun result_column_id _ -> 
-                let column_of_functions = Square_matrix.column trans_mx result_column_id in
+            fun to_state_id _ -> 
+                let column_of_functions_to_state = Square_matrix.column trans_mx to_state_id in
                 let new_situations_in_state_to_flatten = 
                     Array.mapi 
                         (
-                            fun state_id situations_in_state -> convolute filtering_fun situations_in_state (Array.get column_of_functions state_id)
+                            fun from_state_id situations_in_state ->
+                                let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id) in
+                                    convolute 
+                                        filtering_fun 
+                                        situations_in_state 
+                                        transitions_from_state_id
                         ) 
                         situations_mx 
                     in
-                let new_situations_in_state = Array.fold_left 
-                    (fun res_situation sits_to_merge -> _merge_situations_at_state res_situation sits_to_merge ) 
-                    Not_reachable 
-                    new_situations_in_state_to_flatten
+                let new_situations_in_state = 
+                        Array.fold_left 
+                            (fun res_situation sits_to_merge -> _merge_situations_at_state res_situation sits_to_merge ) 
+                            Not_reachable 
+                            new_situations_in_state_to_flatten
                 in
                     new_situations_in_state
         ) 
