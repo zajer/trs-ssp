@@ -1,3 +1,4 @@
+module IntSet = Set.Make(Int)
 let _extract_next_number pair_of_numbers_str start_position =
   let number_regex = Str.regexp "[0-9]+" in
   let _ = Str.search_forward number_regex pair_of_numbers_str start_position 
@@ -151,7 +152,6 @@ module Make ( S : State.S ) = struct
         iter := !iter +1
       done;
       !result,!iter,!is_reached
-  module IntSet = Set.Make(Int)
   let export_walk walk all_raw_trans_funs=
     let ids = List.fold_left (fun set e -> IntSet.add e.S.transition_idx set ) IntSet.empty walk in
     let filtered_raw_trans_funs = List.filter (fun tf -> IntSet.mem tf.State.transition_idx ids ) all_raw_trans_funs in

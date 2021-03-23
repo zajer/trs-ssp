@@ -59,31 +59,6 @@ let test_import_dest_states_1 _ =
       )
       [expected_dest_state_1;expected_dest_state_2]
       imported_dest_states
-let test_import_dest_states_1 _ =
-  let expected_dest_state_1 = { State.state_idx=7;patts_found=["yolo";"swag"] }
-  and expected_dest_state_2 = { State.state_idx=21;patts_found=["bilbo";"baggins"] }
-  and source_file = "dest_states.csv"
-  in
-  let imported_dest_states = Frontend.import_dest_states source_file in
-  assert_equal 
-    ~msg:"There should be exactly two imported destination states"
-    2
-    (List.length imported_dest_states);
-  assert_equal
-    ~msg:"Imported destinations states do not match with the expected"
-    ~cmp:
-      (
-        fun dsl1 dsl2 -> 
-          List.for_all (fun dsl1e -> List.exists (fun dsl2e -> _are_dest_states_equal dsl1e dsl2e) dsl2) dsl1
-      )
-    ~printer:
-      (
-        fun dsl ->
-          let dsl_sl = List.map (fun ds -> _destination_state_2_string ds) dsl in
-          String.concat ";" dsl_sl
-      )
-      [expected_dest_state_1;expected_dest_state_2]
-      imported_dest_states
 module DF = Frontend.Make(DummyState2A_Parsable)
 
 let _update_value_of_square_array array ~row ~column new_val = 
@@ -262,6 +237,7 @@ let suite =
     "Frontend tests" >::: [
         "Import trans funs test 1">:: test_import_trans_funs_1;
         "Export trans funs test 1">:: test_export_trans_funs_1;
+        "Import destination states test 1">:: test_import_dest_states_1;
         "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
         "State reachability test 1">:: test_is_state_reached_1;
         "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
