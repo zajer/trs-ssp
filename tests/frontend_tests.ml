@@ -183,16 +183,31 @@ let test_search_for_situation_in_state_1 _ =
         ~cmp:_compare_array_of_situations_in_state
         expected_sits_matrix
         result_sits_matrix
+let test_export_walk_1 _ =
+    let raw_trans_funs = [
+        {State.permutation_with_time_shift=[(1,2);(3,2);(2,0);(4,0)];react_label="r1";from_idx=0;to_idx=1;transition_idx=1};
+        {permutation_with_time_shift=[(1,0);(2,0);(3,0);(4,1)];react_label="r3";from_idx=1;to_idx=2;transition_idx=3};
+        {permutation_with_time_shift=[(4,0);(3,3);(2,3);(1,0)];react_label="r2";from_idx=2;to_idx=0;transition_idx=2}
+    ]
+    and walk = [
+        { DummyState2A_Parsable.func = (fun  ( (a,ta),(b,tb) ) -> ( (a,ta),(b,tb) ) );transition_idx=1 };
+        { DummyState2A_Parsable.func = (fun  ( (a,ta),(b,tb) ) -> ( (a,ta),(b,tb) ) );transition_idx=2 }
+    ] in
+    let result = DF.export_walk walk raw_trans_funs in
+    assert_equal
+        ~msg:"Exported walk is not equal to expected"
+        [List.nth raw_trans_funs 0; List.nth raw_trans_funs 2]
+        result
 
 let suite =
-"Frontend tests" >::: [
-    "Import trans funs test 1">:: test_import_trans_funs_1;
-    "Export trans funs test 1">:: test_export_trans_funs_1;
-    "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
-    "State reachability test 1">:: test_is_state_reached_1;
-    "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
-    
-]
+    "Frontend tests" >::: [
+        "Import trans funs test 1">:: test_import_trans_funs_1;
+        "Export trans funs test 1">:: test_export_trans_funs_1;
+        "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
+        "State reachability test 1">:: test_is_state_reached_1;
+        "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
+        "Walk export test 1">:: test_export_walk_1
+    ]
 
 let () =
   run_test_tt_main suite
