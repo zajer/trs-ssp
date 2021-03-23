@@ -11,6 +11,20 @@ let test_import_trans_funs_1 _ =
     assert_equal
         ~msg:"Imported transition functions are not equal to expected"
         expected_results results
+let test_export_trans_funs_1 ctx = 
+    let filename = "exported_trans_funs.csv" 
+    and tmp_dir = bracket_tmpdir ~prefix:"tmp_" ctx in
+    let exported_trans_funs = [
+        {State.permutation_with_time_shift=[(1,2);(3,2);(2,0);(4,0)];react_label="r1";from_idx=0;to_idx=1;transition_idx=1};
+        {permutation_with_time_shift=[(1,0);(2,0);(3,0);(4,1)];react_label="r3";from_idx=1;to_idx=2;transition_idx=3};
+        {permutation_with_time_shift=[(4,0);(3,3);(2,3);(1,0)];react_label="r2";from_idx=2;to_idx=0;transition_idx=2}
+    ] in
+    Frontend.export_trans_funs exported_trans_funs (tmp_dir^filename);
+    let imported_trans_funs = Frontend.import_trans_funs (tmp_dir^filename) in
+    assert_equal 
+        ~msg:"Imported trans funs are not equal to exported"
+        exported_trans_funs
+        imported_trans_funs
 module DF = Frontend.Make(DummyState2A_Parsable)
 
 let _update_value_of_square_array array ~row ~column new_val = 
@@ -173,9 +187,11 @@ let test_search_for_situation_in_state_1 _ =
 let suite =
 "Frontend tests" >::: [
     "Import trans funs test 1">:: test_import_trans_funs_1;
+    "Export trans funs test 1">:: test_export_trans_funs_1;
     "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
     "State reachability test 1">:: test_is_state_reached_1;
-    "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1
+    "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
+    
 ]
 
 let () =

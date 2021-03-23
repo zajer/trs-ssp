@@ -45,6 +45,22 @@ let import_trans_funs filename =
             }
     )
     imported_trans_funs_sll
+let _TRANS_FUN_DATA_HEADER = "permutation with time shift"
+let _TRANS_FUN_REACT_HEADER = "react"
+let _TRANS_FROM_STATE_HEADER = "from"
+let _TRANS_TO_STATE_HEADER = "to"
+let _TRANS_FUN_CORRESPONDING_TRANSITION = "corresponds to transition"
+let _trans_fun_data_2_string tfd =
+  List.map (fun (aid,ts) -> "("^(string_of_int aid)^","^(string_of_int ts)^")") tfd |> String.concat ";"
+let export_trans_funs tfs filename =
+  let tfs_csv = List.map 
+    (
+      fun (tf) -> 
+        [(_trans_fun_data_2_string tf.State.permutation_with_time_shift);(tf.react_label);(string_of_int tf.from_idx); (string_of_int tf.to_idx);(string_of_int (tf.transition_idx))]
+    ) 
+    tfs
+  and header = [_TRANS_FUN_DATA_HEADER;_TRANS_FUN_REACT_HEADER; _TRANS_FROM_STATE_HEADER;_TRANS_TO_STATE_HEADER; _TRANS_FUN_CORRESPONDING_TRANSITION] in
+  Csv.save filename (header::tfs_csv)
 
 module Make ( S : State.S ) = struct
   module SS = State_space.Make(S)
@@ -102,6 +118,10 @@ module Make ( S : State.S ) = struct
         iter := !iter +1
       done;
       !result,!iter,!is_reached
-  
+  module IntSet = Set.Make(Int)
+  let export_walk walk all_raw_trans_funs=
+    let ids = List.fold_left (fun set e -> IntSet.add e.S.transition_idx set ) IntSet.empty walk in
+    let filtered_raw_trans_funs = List.filter (fun tf -> IntSet.mem tf.State.transition_idx ids ) all_raw_trans_funs in
+    filtered_raw_trans_funs
 end
 
