@@ -14,8 +14,8 @@ module type SSP = sig
     val convolute : situation Seq.t -> state_trans_fun Seq.t -> int -> situation
     val multiply : system_situation_matrix -> system_situation_matrix -> system_situation_matrix
     *)
-    val convolute : situations_in_state -> courses_between_situations -> situations_in_state
-    val multiply : system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
+    val convolute : (situation-> situation Option.t) -> situations_in_state -> courses_between_situations -> situations_in_state
+    val multiply : (situation-> situation Option.t) -> system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
     val init_situation_in_state : situation -> situations_in_state
     val init_situation_matrix : situations_in_state -> state_idx:int -> num_of_states:int -> system_situation_matrix
 end
@@ -29,7 +29,7 @@ struct
     type system_situation_matrix = situations_in_state array
     type system_transformation_matrix = courses_between_situations Square_matrix.t
 
-    let convolute situations  trans_funs = 
+    let convolute filtering_fun situations  trans_funs = 
         match situations,trans_funs with
         | Not_reachable,No_transitions -> Not_reachable
         | Situations _, No_transitions -> Not_reachable
@@ -38,8 +38,7 @@ struct
             let result = Seq.flat_map 
                 (
                     fun sit -> 
-                        let new_situations = Seq.map 
-                            (fun trans_fun -> SS.advance_situation sit trans_fun) 
+                        let new_situations = Seq.filter_map (fun trans_fun -> SS.advance_situation sit trans_fun |> filtering_fun) 
                             trans_funs
                             in
                             new_situations
@@ -53,7 +52,7 @@ struct
         | Situations s1, Not_reachable -> Situations s1
         | Not_reachable, Situations s2 -> Situations s2
         | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
-    let multiply situations_mx trans_mx =
+    let multiply filtering_fun situations_mx trans_mx =
         let result = Array.mapi 
         (
             fun result_column_id _ -> 
@@ -61,7 +60,7 @@ struct
                 let new_situations_in_state_to_flatten = 
                     Array.mapi 
                         (
-                            fun state_id situations_in_state -> convolute situations_in_state (Array.get column_of_functions state_id)
+                            fun state_id situations_in_state -> convolute filtering_fun situations_in_state (Array.get column_of_functions state_id)
                         ) 
                         situations_mx 
                     in

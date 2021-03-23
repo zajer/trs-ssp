@@ -33,7 +33,7 @@ let test_convolute_1 _ =
     let sitution = DSS.init_situation state in
     let situation_in_state = (DSSP.init_situation_in_state sitution)
     and courses_between_situations = DSSP.Courses (Seq.return state_trans_func) in
-    let result = DSSP.convolute situation_in_state courses_between_situations 
+    let result = DSSP.convolute (fun s -> Some s) situation_in_state courses_between_situations 
     and expected_result = {DSS.current_state=(2,7),(1,3);current_walk=[state_trans_func]} in
     let result_as_list = match result with
     | DSSP.Situations s -> List.of_seq s
@@ -58,7 +58,7 @@ let test_convolute_2 _ =
     let sitution = DSS.init_situation state in
     let situation_in_state = (DSSP.init_situation_in_state sitution)
     and courses_between_situations = DSSP.Courses (List.to_seq [state_trans_func_1;state_trans_func_2]) in
-    let result = DSSP.convolute situation_in_state courses_between_situations 
+    let result = DSSP.convolute  (fun s -> Some s) situation_in_state courses_between_situations 
     and expected_results = [
         {DSS.current_state=(2,8),(1,18);current_walk=[state_trans_func_1]};
         {DSS.current_state=(1,19),(2,6);current_walk=[state_trans_func_2]}
@@ -85,7 +85,7 @@ let test_convolute_3 _ =
     let situtions = [{DSS.current_state=state_1;current_walk=[] };{DSS.current_state=state_2;current_walk=[] }] in
     let situations_in_state = DSSP.Situations (List.to_seq situtions)
     and courses_between_situations = DSSP.Courses (Seq.return state_trans_func) in
-    let result = DSSP.convolute situations_in_state courses_between_situations 
+    let result = DSSP.convolute  (fun s -> Some s) situations_in_state courses_between_situations 
     and expected_results = [
         {DSS.current_state=(2,10),(1,4);current_walk=[state_trans_func]};
         {DSS.current_state=(1,10),(2,4);current_walk=[state_trans_func]}
@@ -113,7 +113,7 @@ let test_convolute_4 _ =
     let situtions = [{DSS.current_state=state_1;current_walk=[] };{DSS.current_state=state_2;current_walk=[] }] in
     let situations_in_state = DSSP.Situations (List.to_seq situtions)
     and courses_between_situations = DSSP.Courses (List.to_seq [state_trans_func_1;state_trans_func_2]) in
-    let result = DSSP.convolute situations_in_state courses_between_situations 
+    let result = DSSP.convolute  (fun s -> Some s) situations_in_state courses_between_situations 
     and expected_results = [
         {DSS.current_state=(2,10),(1,4);current_walk=[state_trans_func_1]};
         {DSS.current_state=(1,5),(2,8);current_walk=[state_trans_func_2]};
@@ -167,7 +167,7 @@ let test_multiply_1 _ =
     _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
     _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
     let trans_matrix = Policy.Square_matrix.make trans_matrix_elts in
-    let result = DSSP.multiply init_situation_matrix trans_matrix in    
+    let result = DSSP.multiply  (fun s -> Some s) init_situation_matrix trans_matrix in    
     let sits_in_state_0 = Array.get result 0 |> _extract_situations
     and sits_in_state_1 = Array.get result 1 |> _extract_situations
     and sits_in_state_2 = Array.get result 2 |> _extract_situations in
@@ -211,7 +211,7 @@ let test_multiply_2 _ =
     _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
     _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
     let trans_matrix = Policy.Square_matrix.make trans_matrix_elts in
-    let result = DSSP.multiply init_situation_matrix trans_matrix in    
+    let result = DSSP.multiply  (fun s -> Some s) init_situation_matrix trans_matrix in    
     let sits_in_state_0 = Array.get result 0 |> _extract_situations
     and sits_in_state_1 = Array.get result 1 |> _extract_situations
     and sits_in_state_2 = Array.get result 2 |> _extract_situations in

@@ -102,9 +102,9 @@ let test_make_transformation_matrix_1 _ =
         {permutation_with_time_shift=[(2,1);(1,0)];react_label="r3";from_idx=1;to_idx=2;transition_idx=3};
         {permutation_with_time_shift=[(1,0);(2,3)];react_label="r2";from_idx=2;to_idx=0;transition_idx=2}
     ] 
-    and state_trans_func_1 = {DummyState2A_Parsable.func=(fun ((a1,t1),(a2,t2)) -> (a1,t1+2),(a2,t2));transition_idx=1}
-    and state_trans_func_2 = {DummyState2A_Parsable.func=(fun ((a1,t1),(a2,t2)) -> (a2,t2+1),(a1,t1));transition_idx=3} 
-    and state_trans_func_3 = {DummyState2A_Parsable.func=(fun ((a1,t1),(a2,t2)) -> (a1,t1),(a2,t2+3));transition_idx=2} 
+    and state_trans_func_1 = {DummyState2A_Parsable.func=DummyState2A_Parsable.fun_1;transition_idx=1}
+    and state_trans_func_2 = {DummyState2A_Parsable.func=DummyState2A_Parsable.fun_2;transition_idx=3} 
+    and state_trans_func_3 = {DummyState2A_Parsable.func=DummyState2A_Parsable.fun_3;transition_idx=2} 
     in
     let expected_matrix_array = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
     _update_value_of_square_array expected_matrix_array ~row:0 ~column:1 (DF.SSP.Courses (Seq.return state_trans_func_1));
@@ -120,7 +120,11 @@ let test_make_transformation_matrix_1 _ =
 let test_is_state_reached_1 _ = 
     let situation_matrix = Array.make 777 DF.SSP.Not_reachable in
     Array.set situation_matrix 7 (DF.SSP.Situations Seq.empty);
-    assert_bool "State suppose to reachable" (DF.is_state_reached situation_matrix 7)
+    assert_bool "State suppose to be unreachable because there are no situations" (not (DF.is_state_reached situation_matrix 7))
+let test_is_state_reached_2 _ = 
+    let situation_matrix = Array.make 777 DF.SSP.Not_reachable in
+    Array.set situation_matrix 7 (DF.SSP.Situations (List.to_seq [ DF.SS.init_situation (A ((1,0),(2,0)) ) ] ) );
+    assert_bool "State suppose to be reachable" (DF.is_state_reached situation_matrix 7)
 let _compare_situations s1 s2 =
     s1.DF.SS.current_state = s2.DF.SS.current_state && 
     if List.compare_lengths s1.current_walk s2.current_walk = 0 then
@@ -134,9 +138,12 @@ let _compare_list_of_situations los1 los2 =
                 List.exists (fun s2 -> _compare_situations s1 s2) los2
         )
         los1
-let _state_2_string ((ai1,t1),(ai2,t2)) =
+let _state_2_string s =
+    match s with
+    | DummyState2A_Parsable.A ((ai1,t1),(ai2,t2)) ->
     "("^(string_of_int ai1)^","^(string_of_int t1)^"),"^
     "("^(string_of_int ai2)^","^(string_of_int t2)^")"
+    | Null -> "Null"
 let _trans_func_2_string stf =
     string_of_int stf.DummyState2A_Parsable.transition_idx
 let _walk_2_string w = 
@@ -151,6 +158,11 @@ let _situation_in_state_2_string sits_in_state state_idx =
     match sits_in_state with
     | DF.SSP.Not_reachable -> (string_of_int state_idx)^":Not reachable"
     | DF.SSP.Situations s -> (string_of_int state_idx)^(List.of_seq s |> _list_of_situations_2_string)
+let _situation_matrix_2_string sm =
+    Array.mapi 
+        (fun state_id sits_in_state -> _situation_in_state_2_string sits_in_state state_id ) 
+        sm 
+        |> Array.to_list |> String.concat " ; " 
 let _compare_situations s1 s2 =
     s1.DF.SS.current_state = s2.DF.SS.current_state && 
     if List.compare_lengths s1.current_walk s2.current_walk = 0 then
@@ -177,9 +189,9 @@ let _compare_array_of_situations_in_state losis1 losis2 =
         losis1
         losis2
 let test_search_for_situation_in_state_1 _ =
-    let init_state = (1,0),(2,0) 
-    and state_trans_func_1 = {DummyState2A_Parsable.func= (fun ((a1,t1),(a2,t2)) -> ((a2,t2+7),(a1,t1+3)));transition_idx=3} 
-    and state_trans_func_2 = {DummyState2A_Parsable.func= (fun ((a1,t1),(a2,t2)) -> ((a1,t1+4),(a2,t2+5)));transition_idx=7} in
+    let init_state = DummyState2A_Parsable.A ((1,0),(2,0))
+    and state_trans_func_1 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_1;transition_idx=3} 
+    and state_trans_func_2 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_2;transition_idx=7} in
     let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
@@ -193,10 +205,10 @@ let test_search_for_situation_in_state_1 _ =
     and expected_num_of_steps = 1
     and expected_reachability_flag = true
     in
-    Array.set expected_sits_matrix 1 (DF.SSP.Situations (Seq.return { DF.SS.current_state=((2,7),(1,3));current_walk=[state_trans_func_1] } ));
-    Array.set expected_sits_matrix 2 (DF.SSP.Situations (Seq.return { DF.SS.current_state=((1,4),(2,5));current_walk=[state_trans_func_2] } ));
+    Array.set expected_sits_matrix 1 (DF.SSP.Situations (Seq.return { DF.SS.current_state=DummyState2A_Parsable.A ((1,2),(2,0));current_walk=[state_trans_func_1] } ));
+    Array.set expected_sits_matrix 2 (DF.SSP.Situations (Seq.return { DF.SS.current_state=DummyState2A_Parsable.A ((2,1),(1,0));current_walk=[state_trans_func_2] } ));
     assert_equal
-        ~msg:"State suppose to reached" 
+        ~msg:"State suppose to be reached" 
         expected_reachability_flag
         is_reached;
     assert_equal
@@ -206,17 +218,62 @@ let test_search_for_situation_in_state_1 _ =
         steps;
     assert_equal
         ~msg:"Result situation matrix is not equal to expected"
-        ~printer:
-            (
-                fun sm ->
-                    Array.mapi 
-                        (fun state_id sits_in_state -> _situation_in_state_2_string sits_in_state state_id ) 
-                        sm 
-                    |> Array.to_list |> String.concat " ; " 
-            )
+        ~printer: _situation_matrix_2_string
         ~cmp:_compare_array_of_situations_in_state
         expected_sits_matrix
         result_sits_matrix
+let test_search_for_situation_in_state_2 _ =
+    let init_state = DummyState2A_Parsable.A ((1,0),(2,0))
+    (*and state_trans_func_1 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_1;transition_idx=3} *)
+    and state_trans_func_2 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_2;transition_idx=7} in
+    let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
+    (*and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)*)
+    and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
+    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
+    (*_update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;*)
+    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:2 courses_between_states_0_2;
+    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts 
+    and num_of_steps = 777 in
+    let _,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:num_of_steps
+    and expected_num_of_steps = num_of_steps
+    and expected_reachability_flag = false
+    in
+    assert_equal
+        ~msg:"State suppose to be unreachable" 
+        expected_reachability_flag
+        is_reached;
+    assert_equal
+        ~msg:("Result should be computed with "^(string_of_int num_of_steps)^" steps")
+        ~printer:(fun i -> string_of_int i)
+        expected_num_of_steps
+        steps
+let test_search_for_situation_in_state_3 _ =
+    let init_state = DummyState2A_Parsable.A ((1,0),(2,0))
+    and state_trans_func_1 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_1;transition_idx=3} 
+    and state_trans_func_2 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_4;transition_idx=7} in
+    let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
+    and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
+    and courses_between_states_1_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 
+    and trans_matrix_elts = Array.make 3 (Array.make 3 DF.SSP.No_transitions) in
+    _update_value_of_square_array trans_matrix_elts ~row:0 ~column:1 courses_between_states_0_1;
+    _update_value_of_square_array trans_matrix_elts ~row:1 ~column:2 courses_between_states_1_2;
+    let trans_matrix = Policy.Square_matrix.make trans_matrix_elts 
+    and num_of_steps = 777 in
+    let sm,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
+    and expected_num_of_steps = num_of_steps
+    and expected_reachability_flag = false in
+    print_endline (_situation_matrix_2_string sm);
+    assert_equal
+        ~msg:("Result should be computed with "^(string_of_int num_of_steps)^" steps")
+        ~printer:(fun i -> string_of_int i)
+        expected_num_of_steps
+        steps;
+    assert_equal
+        ~msg:"State suppose to be unreachable" 
+        expected_reachability_flag
+        is_reached
 let test_export_walk_1 _ =
     let raw_trans_funs = [
         {State.permutation_with_time_shift=[(1,2);(3,2);(2,0);(4,0)];react_label="r1";from_idx=0;to_idx=1;transition_idx=1};
@@ -224,8 +281,8 @@ let test_export_walk_1 _ =
         {permutation_with_time_shift=[(4,0);(3,3);(2,3);(1,0)];react_label="r2";from_idx=2;to_idx=0;transition_idx=2}
     ]
     and walk = [
-        { DummyState2A_Parsable.func = (fun  ( (a,ta),(b,tb) ) -> ( (a,ta),(b,tb) ) );transition_idx=1 };
-        { DummyState2A_Parsable.func = (fun  ( (a,ta),(b,tb) ) -> ( (a,ta),(b,tb) ) );transition_idx=2 }
+        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=1 };
+        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=2 }
     ] in
     let result = DF.export_walk walk raw_trans_funs in
     assert_equal
@@ -240,7 +297,10 @@ let suite =
         "Import destination states test 1">:: test_import_dest_states_1;
         "Transition matrix generation test 1">:: test_make_transformation_matrix_1;
         "State reachability test 1">:: test_is_state_reached_1;
+        "State reachability test 2">:: test_is_state_reached_2;
         "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
+        "Search for situations in a state test 2 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_2;
+        "Search for situations in a state test 3 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_3;
         "Walk export test 1">:: test_export_walk_1
     ]
 

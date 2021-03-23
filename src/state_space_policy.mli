@@ -6,8 +6,8 @@ module type SSP = sig
     type system_situation_matrix = situations_in_state array
     type system_transformation_matrix = courses_between_situations Square_matrix.t
     
-    val convolute : situations_in_state -> courses_between_situations -> situations_in_state
-    val multiply : system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
+    val convolute : (situation -> situation Option.t) -> situations_in_state -> courses_between_situations -> situations_in_state
+    val multiply : (situation-> situation Option.t) -> system_situation_matrix -> system_transformation_matrix -> system_situation_matrix
     val init_situation_in_state : situation -> situations_in_state
     val init_situation_matrix : situations_in_state -> state_idx:int -> num_of_states:int -> system_situation_matrix
 end

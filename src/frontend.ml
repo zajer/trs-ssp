@@ -141,14 +141,19 @@ module Make ( S : State.S ) = struct
   let is_state_reached sits_matrix state_idx = 
     match Array.get sits_matrix state_idx with
     | SSP.Not_reachable -> false
-    | SSP.Situations _ -> true
+    | SSP.Situations s_seq -> List.length (List.of_seq s_seq) > 0
+  let _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
+    Array.set sits_matrix state_idx SSP.Not_reachable
   let search_for_situation_in_state sits_matrix trans_matrix ~state_idx ~max_num_of_steps = 
-    let result = ref sits_matrix 
-    and is_reached = ref false 
+    let filtering_fun = fun sit -> if S.is_negligible sit.SS.current_state then None else Some sit in
+    let result = ref sits_matrix in
+    let is_reached = ref (is_state_reached !result state_idx) 
     and iter = ref 0 in
-      while not (!is_reached) || if max_num_of_steps <> -1 then false else !iter < max_num_of_steps do
-        result := SSP.multiply sits_matrix trans_matrix;
+      while not (!is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true do
+        result := SSP.multiply filtering_fun sits_matrix trans_matrix;
         is_reached := is_state_reached !result state_idx;
+        if not !is_reached then
+          _fix_situations_in_state_to_not_reachable !result state_idx;
         iter := !iter +1
       done;
       !result,!iter,!is_reached
