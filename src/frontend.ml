@@ -61,6 +61,39 @@ let export_trans_funs tfs filename =
     tfs
   and header = [_TRANS_FUN_DATA_HEADER;_TRANS_FUN_REACT_HEADER; _TRANS_FROM_STATE_HEADER;_TRANS_TO_STATE_HEADER; _TRANS_FUN_CORRESPONDING_TRANSITION] in
   Csv.save filename (header::tfs_csv)
+let _string_list_2_2tuple sl = 
+  assert (List.length sl = 2);
+  List.nth sl 0,List.nth sl 1
+let rec _find_inner_elts str start_position accu = 
+  let inner_elt_regex = Str.regexp "[a-zA-Z0-9 ]+" in
+  try
+    let _ = Str.search_forward inner_elt_regex str start_position
+    and matched = Str.matched_string str
+    and new_start_pos = Str.match_end () in
+      _find_inner_elts str new_start_pos (matched::accu)
+  with Not_found -> accu
+let _parse_list_of_string str = 
+  let inner_elts = _find_inner_elts str 0 [] in
+  inner_elts
+let import_dest_states file_name =
+  let dest_states_csv = Csv.load file_name in
+  let dest_states =
+    List.map 
+      (
+        fun sl -> let idx_str,string_list_str = _string_list_2_2tuple sl in
+        {State.state_idx=(int_of_string idx_str); patts_found= _parse_list_of_string string_list_str}
+      )
+      dest_states_csv
+  in
+    dest_states
+type destination_strategy = FirstFound | Random
+let destination_state_idx strategy destination_states = 
+    match strategy with 
+    | FirstFound -> (List.hd destination_states).State.state_idx
+    | Random ->
+      Random.self_init ();
+      let sequence_idx = Random.int (List.length destination_states) in
+      (List.nth destination_states sequence_idx).state_idx
 
 module Make ( S : State.S ) = struct
   module SS = State_space.Make(S)

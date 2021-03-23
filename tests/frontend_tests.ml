@@ -25,6 +25,65 @@ let test_export_trans_funs_1 ctx =
         ~msg:"Imported trans funs are not equal to exported"
         exported_trans_funs
         imported_trans_funs
+let _destination_state_2_string ds =
+  let state_idx = string_of_int ds.State.state_idx
+          and descriptions = "["^(String.concat ";" ds.patts_found)^"]"
+          in
+          "{"^state_idx^" ;"^descriptions^"}"
+let _are_dest_states_equal ds1 ds2 =
+  let res = ds1.State.state_idx = ds2.State.state_idx &&
+  List.for_all (fun ds1e -> List.exists (fun ds2e -> ds1e = ds2e) ds2.patts_found) ds1.patts_found in
+  res
+let test_import_dest_states_1 _ =
+  let expected_dest_state_1 = { State.state_idx=7;patts_found=["yolo";"swag"] }
+  and expected_dest_state_2 = { State.state_idx=21;patts_found=["bilbo";"baggins"] }
+  and source_file = "dest_states.csv"
+  in
+  let imported_dest_states = Frontend.import_dest_states source_file in
+  assert_equal 
+    ~msg:"There should be exactly two imported destination states"
+    2
+    (List.length imported_dest_states);
+  assert_equal
+    ~msg:"Imported destinations states do not match with the expected"
+    ~cmp:
+      (
+        fun dsl1 dsl2 -> 
+          List.for_all (fun dsl1e -> List.exists (fun dsl2e -> _are_dest_states_equal dsl1e dsl2e) dsl2) dsl1
+      )
+    ~printer:
+      (
+        fun dsl ->
+          let dsl_sl = List.map (fun ds -> _destination_state_2_string ds) dsl in
+          String.concat ";" dsl_sl
+      )
+      [expected_dest_state_1;expected_dest_state_2]
+      imported_dest_states
+let test_import_dest_states_1 _ =
+  let expected_dest_state_1 = { State.state_idx=7;patts_found=["yolo";"swag"] }
+  and expected_dest_state_2 = { State.state_idx=21;patts_found=["bilbo";"baggins"] }
+  and source_file = "dest_states.csv"
+  in
+  let imported_dest_states = Frontend.import_dest_states source_file in
+  assert_equal 
+    ~msg:"There should be exactly two imported destination states"
+    2
+    (List.length imported_dest_states);
+  assert_equal
+    ~msg:"Imported destinations states do not match with the expected"
+    ~cmp:
+      (
+        fun dsl1 dsl2 -> 
+          List.for_all (fun dsl1e -> List.exists (fun dsl2e -> _are_dest_states_equal dsl1e dsl2e) dsl2) dsl1
+      )
+    ~printer:
+      (
+        fun dsl ->
+          let dsl_sl = List.map (fun ds -> _destination_state_2_string ds) dsl in
+          String.concat ";" dsl_sl
+      )
+      [expected_dest_state_1;expected_dest_state_2]
+      imported_dest_states
 module DF = Frontend.Make(DummyState2A_Parsable)
 
 let _update_value_of_square_array array ~row ~column new_val = 
