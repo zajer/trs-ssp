@@ -253,7 +253,7 @@ let test_search_for_situation_in_state_3 _ =
     and num_of_steps = 777 in
     Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
     Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
-    let _,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
+    let result_situation_matrix,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
     and expected_num_of_steps = num_of_steps
     and expected_reachability_flag = false in
     assert_equal
@@ -264,7 +264,10 @@ let test_search_for_situation_in_state_3 _ =
     assert_equal
         ~msg:"State suppose to be unreachable" 
         expected_reachability_flag
-        is_reached
+        is_reached;
+    assert_bool
+        "No state should be marked as reachable in two steps"
+        (Array.for_all (fun sis -> match sis with | DF.SSP.Not_reachable -> true | Situations _ -> false) result_situation_matrix )
 let test_search_for_situation_in_state_4 _ =
     let init_state = DummyState2A_Parsable.A ((1,0),(2,0))
     and state_trans_func_1 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_1;transition_idx=3} 
@@ -322,8 +325,8 @@ let suite =
         "State reachability test 1">:: test_is_state_reached_1;
         "State reachability test 2">:: test_is_state_reached_2;
         "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
-        "Search for situations in a state test 2 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_2;
-        "Search for situations in a state test 3 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_3;
+        "Search for situations in a state test 2 - won't reach the desired state - no transition to this state">:: test_search_for_situation_in_state_2;
+        "Search for situations in a state test 3 - won't reach the desired state - conditional transition">:: test_search_for_situation_in_state_3;
         "Search for situations in a state test 4 - desired state reach in more than one step">:: test_search_for_situation_in_state_4;
         "Walk export test 1">:: test_export_walk_1
     ]
