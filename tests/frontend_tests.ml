@@ -307,12 +307,13 @@ let test_export_walk_1 _ =
         {permutation_with_time_shift=[(4,0);(3,3);(2,3);(1,0)];react_label="r2";from_idx=2;to_idx=0;transition_idx=2}
     ]
     and walk = [
-        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=1 };
-        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=2 }
+        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=2 };
+        { DummyState2A_Parsable.func = (fun s -> s);transition_idx=1 }
     ] in
     let result = DF.export_walk walk raw_trans_funs in
     assert_equal
         ~msg:"Exported walk is not equal to expected"
+        ~printer:(fun lotf -> List.map (fun tf -> "{rtf trans_idx:"^(string_of_int (tf.State.transition_idx)^"}" ) ) lotf |> String.concat ";" )
         [List.nth raw_trans_funs 0; List.nth raw_trans_funs 2]
         result
 

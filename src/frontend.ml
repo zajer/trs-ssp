@@ -162,9 +162,10 @@ module Make ( S : State.S ) = struct
       done;
       !result,!iter,!is_reached
   let export_walk walk all_raw_trans_funs=
-    let ids = List.fold_left (fun set e -> IntSet.add e.S.transition_idx set ) IntSet.empty walk in
-    let filtered_raw_trans_funs = List.filter (fun tf -> IntSet.mem tf.State.transition_idx ids ) all_raw_trans_funs in
-    filtered_raw_trans_funs
+    let hashed_trans_funs = Hashtbl.create (List.length all_raw_trans_funs) in
+    List.iter (fun tf -> Hashtbl.add hashed_trans_funs tf.State.transition_idx tf ) all_raw_trans_funs;
+    List.map (fun we -> Hashtbl.find hashed_trans_funs we.S.transition_idx ) walk |> List.rev
+    
   let walk_from_situation_matrix strategy sm state_idx =
     match strategy with 
     | FirstFound -> 
