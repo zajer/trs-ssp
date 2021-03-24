@@ -59,7 +59,7 @@ if is_found then
     print_endline ("Desired state with id="^(string_of_int dest_state_idx)^" found");
     let result_walk = Tools.walk_from_situation_matrix Frontend.FirstFound situations_mx dest_state_idx in
     let walk_to_save = Tools.export_walk result_walk imported_trans_funs in
-    Frontend.export_trans_funs walk_to_save "example_result.csv"
+    Frontend.export_trans_funs walk_to_save "ex1_result.csv"
 )
 else
 (
