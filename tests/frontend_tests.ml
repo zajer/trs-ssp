@@ -265,6 +265,38 @@ let test_search_for_situation_in_state_3 _ =
         ~msg:"State suppose to be unreachable" 
         expected_reachability_flag
         is_reached
+let test_search_for_situation_in_state_4 _ =
+    let init_state = DummyState2A_Parsable.A ((1,0),(2,0))
+    and state_trans_func_1 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_1;transition_idx=3} 
+    and state_trans_func_2 = {DummyState2A_Parsable.func= DummyState2A_Parsable.fun_3;transition_idx=7} in
+    let init_situation_in_state = DF.SSP.init_situation_in_state (DF.SS.init_situation init_state) 
+    and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
+    and courses_between_states_1_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
+    let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
+    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3
+    and num_of_steps = 777 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
+    let result_sits_matrix,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:2 ~max_num_of_steps:num_of_steps 
+    and expected_sits_matrix = Array.make 3 DF.SSP.Not_reachable
+    and expected_num_of_steps = 2
+    and expected_reachability_flag = true in
+    Array.set expected_sits_matrix 2 (DF.SSP.Situations (Seq.return { DF.SS.current_state=DummyState2A_Parsable.A ((1,2),(2,3));current_walk=[state_trans_func_2;state_trans_func_1] } ));
+    assert_equal
+        ~msg:("Result should be computed in "^(string_of_int num_of_steps)^" steps")
+        ~printer:(fun i -> string_of_int i)
+        expected_num_of_steps
+        steps;
+    assert_equal
+        ~msg:"State suppose to be unreachable" 
+        expected_reachability_flag
+        is_reached;
+    assert_equal
+        ~msg:"Result situation matrix is not equal to expected"
+        ~printer: _situation_matrix_2_string
+        ~cmp:_compare_array_of_situations_in_state
+        expected_sits_matrix
+        result_sits_matrix 
 let test_export_walk_1 _ =
     let raw_trans_funs = [
         {State.permutation_with_time_shift=[(1,2);(3,2);(2,0);(4,0)];react_label="r1";from_idx=0;to_idx=1;transition_idx=1};
@@ -292,6 +324,7 @@ let suite =
         "Search for situations in a state test 1 ">:: test_search_for_situation_in_state_1;
         "Search for situations in a state test 2 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_2;
         "Search for situations in a state test 3 - won't reach the desired state but should stop ">:: test_search_for_situation_in_state_3;
+        "Search for situations in a state test 4 - desired state reach in more than one step">:: test_search_for_situation_in_state_4;
         "Walk export test 1">:: test_export_walk_1
     ]
 

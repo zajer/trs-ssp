@@ -137,8 +137,7 @@ module Make ( S : State.S ) = struct
       )
       array_matrix_of_trans_funs |> Square_matrix.make
   
-  let make_ssp_system filename state ~state_idx ~num_of_states =
-    let raw_trans_funs = import_trans_funs filename in
+  let make_ssp_system raw_trans_funs state ~state_idx ~num_of_states =
     let transition_matrix = make_system_transformation_matrix raw_trans_funs
     and init_situation = SSP.init_situation_in_state state in
     let situation_matrix = SSP.init_situation_matrix init_situation ~state_idx  ~num_of_states in
@@ -155,7 +154,7 @@ module Make ( S : State.S ) = struct
     let is_reached = ref (is_state_reached !result state_idx) 
     and iter = ref 0 in
       while not (!is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true do
-        result := SSP.multiply filtering_fun sits_matrix trans_matrix;
+        result := SSP.multiply filtering_fun !result trans_matrix;
         is_reached := is_state_reached !result state_idx;
         if not !is_reached then
           _fix_situations_in_state_to_not_reachable !result state_idx;
@@ -166,5 +165,28 @@ module Make ( S : State.S ) = struct
     let ids = List.fold_left (fun set e -> IntSet.add e.S.transition_idx set ) IntSet.empty walk in
     let filtered_raw_trans_funs = List.filter (fun tf -> IntSet.mem tf.State.transition_idx ids ) all_raw_trans_funs in
     filtered_raw_trans_funs
+  let walk_from_situation_matrix strategy sm state_idx =
+    match strategy with 
+    | FirstFound -> 
+    (
+      let situations_in_state = Array.get sm state_idx in
+      match situations_in_state with
+      | SSP.Not_reachable -> raise (Invalid_argument "Desired state is not reachable")
+      | Situations s_seq -> 
+        let situation = List.of_seq s_seq |> List.hd in
+        situation.SS.current_walk
+    )
+    | Random ->
+    (
+      Random.self_init ();
+      let situations_in_state = Array.get sm state_idx in
+      match situations_in_state with
+      | Not_reachable -> raise (Invalid_argument "Desired state is unreachable")
+      | Situations s_seq -> 
+      let situations = List.of_seq s_seq in
+      let situation_idx = Random.int (List.length situations) in
+      let situation = List.nth situations situation_idx in
+        situation.SS.current_walk
+    )
 end
 
