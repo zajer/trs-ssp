@@ -1,8 +1,10 @@
 (tests
   (
     names 
-      combination_tests
+      state_space_policy_tests
+      frontend_tests
+      square_matrix_tests
   )
-  (libraries ounit2 policy)
+  (libraries ounit2 ssp)
 )
 

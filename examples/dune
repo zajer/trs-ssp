@@ -1,5 +1,5 @@
 (executables
-  (names example1 example2)
-  (libraries policy )
-  (modes (native exe) )
+  (names ex1 ex2 )
+  (libraries ssp )
+  (modes native )
 ) 
