@@ -29,8 +29,11 @@ We also need to define `state transition functions`. These are functions that al
  - `Situation matrix` - a one row matrix consisting of squences of all possible combinations of situations in each state with walks of the same length.
  - `Transition matrix` - a N<sub>S</sub> x N<sub>S</sub> adjacency matrix of a directed multigraph representing the state space of our interest. Elements of this matrix are state transition function.
 
+## Examples
 
- ## Miscellaneous
+Basic examples of usage are presented in the ``examples`` folder.
+
+## Miscellaneous
 
  This software aims to provide an implementation of operations described in detail in:
  https://doi.org/10.3390/s21020622
