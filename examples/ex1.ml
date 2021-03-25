@@ -43,7 +43,7 @@ let init_situation = [|(1,0);(2,0)|] |> Tools.SS.init_situation
 let max_num_of_steps = 777
 let init_sm,tm = Tools.make_ssp_system imported_trans_funs init_situation ~state_idx:0 ~num_of_states:(StateDef.num_of_states ())
 let situations_mx,num_of_steps,is_found = Tools.search_for_situation_in_state init_sm tm ~state_idx:dest_state_idx ~max_num_of_steps;;
-Array.iteri
+(*Array.iteri
         (
             fun state_idx sits_in_state -> 
                 match sits_in_state with
@@ -53,10 +53,10 @@ Array.iteri
                     let content = List.map (fun sit -> StateDef.to_stirng sit.Tools.SS.current_state) situations_list |> String.concat "," in
                     print_endline ((string_of_int state_idx)^":"^content)
         )
-        situations_mx;
+        situations_mx;*)
 if is_found then 
 (
-    print_endline ("Desired state with id="^(string_of_int dest_state_idx)^" found");
+    (*print_endline ("Desired state with id="^(string_of_int dest_state_idx)^" found");*)
     let result_walk = Tools.walk_from_situation_matrix Frontend.FirstFound situations_mx dest_state_idx in
     let walk_to_save = Tools.export_walk result_walk imported_trans_funs in
     Frontend.export_trans_funs walk_to_save "ex1_result.csv"
@@ -66,18 +66,3 @@ else
     print_endline ("Desired state has not been reached with "^(string_of_int num_of_steps )^" steps!")
 
 );;
-(*
-let yolo = [|(1,0);(2,0)|] |> Tools.SS.init_situation
-let raw_trans_fun = {State.permutation_with_time_shift=[(2,1);(1,0)];react_label="yolo";transition_idx=3;from_idx=0;to_idx=1}
-let trans_fun = StateDef.parse_trans_fun raw_trans_fun;;
-let swag = Tools.SS.advance_situation yolo trans_fun;;
-print_endline (StateDef.to_stirng swag.current_state);;
-let x = Array.get situations_mx 1 ;;
-let x_fun = fun sit -> 
-    match sit with 
-    | Tools.SSP.Not_reachable -> raise (Invalid_argument "huehue")
-    | Situations sseq -> List.of_seq sseq |> List.length;;
-let y = x_fun x;;
-print_endline (string_of_int y)
-let z = y.current_state;;
-print_endline (StateDef.to_stirng z);;*)

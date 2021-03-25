@@ -1,5 +1,5 @@
 (executables
-  (names example1 example2 ex1 ex2 )
+  (names ex1 ex2 )
   (libraries policy )
   (modes native )
 ) 

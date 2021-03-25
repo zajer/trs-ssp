@@ -45,13 +45,6 @@ module StateDef = struct
 end
 
 module Tools = Frontend.Make(StateDef)
-(*
-let x = [|(1,0);(2,1)|]
-let trans_raw = {State.permutation_with_time_shift=[(2,1);(1,1)]; react_label="abc"; from_idx=0; to_idx=1; transition_idx=7}
-let tf = StateDef.parse_trans_fun trans_raw
-let y = tf.func x;;
-print_endline (StateDef.to_stirng y)
-*)
 
 let transitions_file = "trans_funs_ex2.csv"
 let destination_states_file = "dest_states_ex1.csv"
@@ -62,7 +55,7 @@ let init_situation = [|(1,0);(2,0)|] |> Tools.SS.init_situation
 let max_num_of_steps = 777
 let init_sm,tm = Tools.make_ssp_system imported_trans_funs init_situation ~state_idx:0 ~num_of_states:(StateDef.num_of_states ())
 let situations_mx,num_of_steps,is_found = Tools.search_for_situation_in_state init_sm tm ~state_idx:dest_state_idx ~max_num_of_steps;;
-Array.iteri
+(*Array.iteri
         (
             fun state_idx sits_in_state -> 
                 match sits_in_state with
@@ -72,10 +65,10 @@ Array.iteri
                     let content = List.map (fun sit -> StateDef.to_stirng sit.Tools.SS.current_state) situations_list |> String.concat "," in
                     print_endline ((string_of_int state_idx)^":"^content)
         )
-        situations_mx;
+        situations_mx;*)
 if is_found then 
 (
-    print_endline ("Desired state with id="^(string_of_int dest_state_idx)^" found");
+    (*print_endline ("Desired state with id="^(string_of_int dest_state_idx)^" found");*)
     let result_walk = Tools.walk_from_situation_matrix Frontend.FirstFound situations_mx dest_state_idx in
     let walk_to_save = Tools.export_walk result_walk imported_trans_funs in
     Frontend.export_trans_funs walk_to_save "ex2_result.csv"

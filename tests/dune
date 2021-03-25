@@ -1,7 +1,6 @@
 (tests
   (
     names 
-      combination_tests
       state_space_policy_tests
       frontend_tests
       square_matrix_tests
