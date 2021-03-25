@@ -1,3 +1,4 @@
+open Ssp
 type atom = (int*int)*(int*int) 
 type t = A of atom | Null
 type trans_fun = { func:t->t; transition_idx:int}
@@ -26,7 +27,7 @@ let _match_permutation_with_template perm =
 
 
 let parse_trans_fun trans_raw =
-    let func = _match_permutation_with_template trans_raw.Policy.State.permutation_with_time_shift in
+    let func = _match_permutation_with_template trans_raw.State.permutation_with_time_shift in
     {func;transition_idx=trans_raw.transition_idx}
 
 let num_of_states () =

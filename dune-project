@@ -1,5 +1,5 @@
 (lang dune 2.0)
-(name policy)
+(name ssp)
 (version 1.1)
 (generate_opam_files true)
 
@@ -11,7 +11,7 @@
 (bug_reports "https://github.com/zajer/state_space_policy/issues")
 
 (package
-  (name policy)
+  (name ssp)
   (synopsis "An OCaml library for generating achievable state matrices.")
   (description "")
   (tags ("policy" "state space") )

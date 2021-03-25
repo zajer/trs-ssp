@@ -1,5 +1,5 @@
 open OUnit2
-open Policy
+open Ssp
 let test_import_trans_funs_1 _ =
     let filename = "trans_funs.csv" in
     let expected_results = [
@@ -192,7 +192,7 @@ let test_search_for_situation_in_state_1 _ =
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3 in
+    let trans_matrix = Square_matrix.init_single DF.SSP.No_transitions 3 in
     Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
     Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let result_sits_matrix,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:777 
@@ -225,7 +225,7 @@ let test_search_for_situation_in_state_2 _ =
     (*and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)*)
     and courses_between_states_0_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3 
+    let trans_matrix = Square_matrix.init_single DF.SSP.No_transitions 3 
     and num_of_steps = 777 in
     Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let _,steps,is_reached = DF.search_for_situation_in_state init_situation_matrix trans_matrix ~state_idx:1 ~max_num_of_steps:num_of_steps
@@ -249,7 +249,7 @@ let test_search_for_situation_in_state_3 _ =
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_1_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3
+    let trans_matrix = Square_matrix.init_single DF.SSP.No_transitions 3
     and num_of_steps = 777 in
     Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
     Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
@@ -276,7 +276,7 @@ let test_search_for_situation_in_state_4 _ =
     and courses_between_states_0_1 = DF.SSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_1_2 = DF.SSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DF.SSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init_single DF.SSP.No_transitions 3
+    let trans_matrix = Square_matrix.init_single DF.SSP.No_transitions 3
     and num_of_steps = 777 in
     Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
     Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;

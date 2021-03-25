@@ -1,6 +1,6 @@
 (library
-  (name policy)
-  (public_name policy)
+  (name ssp)
+  (public_name ssp)
   (libraries csv str )
 )
 

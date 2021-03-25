@@ -1,6 +1,7 @@
 open OUnit2
-module DSS = Policy.State_space.Make(DummyState2A)
-module DSSP = Policy.State_space_policy.Make(DSS)
+open Ssp
+module DSS = State_space.Make(DummyState2A)
+module DSSP = State_space_policy.Make(DSS)
 let _compare_situations s1 s2 =
     s1.DSS.current_state = s2.DSS.current_state && 
     if List.compare_lengths s1.current_walk s2.current_walk = 0 then
@@ -175,9 +176,9 @@ let test_multiply_1 _ =
     and courses_between_states_0_1 = DSSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DSSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DSSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init _trans_matrix_init_fun 3 in
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
+    let trans_matrix = Square_matrix.init _trans_matrix_init_fun 3 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let result = DSSP.multiply  (fun s -> Some s) init_situation_matrix trans_matrix in    
     let sits_in_state_0 = Array.get result 0 |> _extract_situations
     and sits_in_state_1 = Array.get result 1 |> _extract_situations
@@ -218,9 +219,9 @@ let test_multiply_2 _ =
     and courses_between_states_0_1 = DSSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DSSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DSSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init _trans_matrix_init_fun 3 in
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
+    let trans_matrix = Square_matrix.init _trans_matrix_init_fun 3 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let result = DSSP.multiply  (fun s -> Some s) init_situation_matrix trans_matrix in    
     let sits_in_state_0 = Array.get result 0 |> _extract_situations
     and sits_in_state_1 = Array.get result 1 |> _extract_situations
@@ -267,9 +268,9 @@ let test_multiply_3 _ =
     and courses_between_states_0_1 = DSSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_0_2 = DSSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DSSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init _trans_matrix_init_fun 3 in
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
+    let trans_matrix = Square_matrix.init _trans_matrix_init_fun 3 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:0 ~column:2 courses_between_states_0_2;
     let result = DSSP.multiply 
         (fun s -> 
             match s.current_state with 
@@ -321,9 +322,9 @@ let test_multiply_4 _ =
     and courses_between_states_0_1 = DSSP.Courses (Seq.return state_trans_func_1)
     and courses_between_states_1_2 = DSSP.Courses (Seq.return state_trans_func_2) in
     let init_situation_matrix = DSSP.init_situation_matrix init_situation_in_state ~state_idx:0 ~num_of_states:3 in
-    let trans_matrix = Policy.Square_matrix.init _trans_matrix_init_fun 3 in
-    Policy.Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
-    Policy.Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
+    let trans_matrix = Square_matrix.init _trans_matrix_init_fun 3 in
+    Square_matrix.update trans_matrix ~row:0 ~column:1 courses_between_states_0_1;
+    Square_matrix.update trans_matrix ~row:1 ~column:2 courses_between_states_1_2;
     let result = DSSP.multiply  (fun s -> Some s) init_situation_matrix trans_matrix in    
     let sits_in_state_0 = Array.get result 0 |> _extract_situations
     and sits_in_state_1 = Array.get result 1 |> _extract_situations

@@ -1,4 +1,4 @@
-open Policy
+open Ssp
 
 module StateDef = struct
    type t = (int*int) array

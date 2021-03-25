@@ -1,5 +1,5 @@
 open OUnit2
-open Policy
+open Ssp
 
 let _array_of_ints_to_string = fun aoi -> Array.map (fun i -> string_of_int i) aoi |> Array.to_list |> String.concat ";"
 let _compare_arrays_of_arrays_of_ints = fun aoaoi1 aoaoi2 -> Array.for_all2 ( fun row1 row2 -> Array.for_all2 (fun i1 i2 -> i1 = i2) row1 row2 ) aoaoi1 aoaoi2
