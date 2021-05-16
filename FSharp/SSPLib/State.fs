@@ -2,7 +2,7 @@ namespace SSPLib
 
 type trans_fun_raw = {permutation_with_time_shift:(int*int) list; react_label:string; from_idx:int; to_idx:int; transition_idx:int}
 type dest_state = {state_idx:int;patts_found:string list}
-module State =
+module S =
     type t = (int*int) array
     type trans_fun = { func:t->t; transition_idx:int}
     type trans_fun_conf = {perm_config: Map<int,(int*int)>;conditional_agents:int array}
