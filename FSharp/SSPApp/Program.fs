@@ -15,7 +15,7 @@ let main argv =
     let destStates = Frontend.import_dest_states destStatesFile
     let dest_state_idx = Frontend.destination_state_idx Frontend.FirstFound destStates
     let initSituation = Array.init numOfAgents (fun i -> i+1,0) |> SS.init_situation 
-    let maxNumOfSteps = int numOfStates
+    let maxNumOfSteps = int numOfSteps
     let init_sm,tm = Frontend.make_ssp_system importedTransFuns initSituation 0 (S.num_of_states ())
     let situationsMx,num_of_steps,is_found = Frontend.search_for_situation_in_state init_sm tm dest_state_idx maxNumOfSteps
     if is_found then 
