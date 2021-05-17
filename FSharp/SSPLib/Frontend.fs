@@ -77,3 +77,96 @@ module Frontend =
                                                       )
                                                       
         dest_states
+    type destination_strategy = FirstFound | Random
+    let destination_state_idx strategy destination_states = 
+      match strategy with 
+      | FirstFound -> (Seq.head destination_states).state_idx
+      | Random ->
+        let rand = System.Random ();
+        let sequence_idx = rand.Next(Seq.length destination_states)
+        (Seq.item sequence_idx destination_states).state_idx
+    let make_system_transformation_matrix trans_funs =
+      let array_matrix_of_trans_funs = Array.init 
+                                        (S.num_of_states ()) 
+                                        (
+                                          fun _ -> 
+                                              Array.init 
+                                                (S.num_of_states ()) 
+                                                (fun _ -> [])
+                                        )
+      List.iter 
+        (
+          fun trans_fun -> 
+            let row = trans_fun.from_idx
+            let column = trans_fun.to_idx 
+            let current_element_array = Array.get array_matrix_of_trans_funs row in
+            let current_element = Array.get current_element_array column in
+            let new_element = (S.parse_trans_fun trans_fun)::current_element in
+            Array.set current_element_array column (new_element);
+            Array.set array_matrix_of_trans_funs row current_element_array
+        )
+        trans_funs 
+      Array.map 
+        (
+          fun row -> 
+            Array.map 
+              (
+                fun lotf -> 
+                  if List.isEmpty lotf then 
+                    SSP.No_transitions 
+                  else 
+                    SSP.Courses (List.toSeq lotf) 
+              ) 
+              row 
+        )
+        array_matrix_of_trans_funs |> SquareMatrix.make
+    let make_ssp_system raw_trans_funs state state_idx num_of_states =
+      let transition_matrix = make_system_transformation_matrix (List.ofSeq raw_trans_funs)
+      let init_situation = SSP.init_situation_in_state state in
+      let situation_matrix = SSP.init_situation_matrix init_situation state_idx num_of_states in
+        situation_matrix,transition_matrix
+    let is_state_reached sits_matrix state_idx = 
+      match Array.get sits_matrix state_idx with
+      | SSP.Not_reachable -> false
+      | SSP.Situations s_seq -> not (List.isEmpty (List.ofSeq s_seq))
+    let _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
+      Array.set sits_matrix state_idx SSP.Not_reachable
+    let search_for_situation_in_state sits_matrix trans_matrix state_idx max_num_of_steps = 
+      let (filtering_fun:SS.situation -> SS.situation option) = fun sit -> if S.is_negligible sit.current_state then None else Some sit
+      let result = ref sits_matrix
+      let is_reached = ref (is_state_reached !result state_idx) 
+      let iter = ref 0 
+      while not ( (!is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
+          result := SSP.multiply filtering_fun !result trans_matrix;
+          is_reached := is_state_reached !result state_idx;
+          if not !is_reached then
+            _fix_situations_in_state_to_not_reachable !result state_idx;
+          iter := !iter + 1
+      done;
+      !result,!iter,!is_reached
+    let export_walk (walk:SS.walk) all_raw_trans_funs =
+      let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transition_idx tf htf ) Map.empty all_raw_trans_funs;
+      List.map (fun (we:S.trans_fun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
+    let walk_from_situation_matrix strategy sm state_idx =
+      match strategy with 
+      | FirstFound -> 
+        (
+          let situations_in_state = Array.get sm state_idx
+          match situations_in_state with
+          | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
+          | SSP.Situations s_seq -> 
+            let situation = List.ofSeq s_seq |> List.head
+            situation.current_walk
+        )
+      | Random ->
+        (
+          let rand = System.Random ()
+          let situations_in_state = Array.get sm state_idx
+          match situations_in_state with
+          | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is unreachable")
+          | SSP.Situations s_seq -> 
+          let situations = List.ofSeq s_seq
+          let situation_idx = rand.Next (List.length situations)
+          let situation = List.item situation_idx situations
+          situation.current_walk
+        )
