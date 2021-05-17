@@ -9,5 +9,4 @@ let from whom =
 let main argv =
     let message = from "F#" // Call the function
     printfn "Hello world %s" message
-    SSPLib.Say.hello "there"
     0 // return an integer exit code
