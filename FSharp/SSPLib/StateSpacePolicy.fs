@@ -34,16 +34,16 @@ module SSP =
         let result = Array.mapi 
                         (
                             fun to_state_id _ -> 
-                                let column_of_functions_to_state = SquareMatrix.column trans_mx to_state_id in
+                                let column_of_functions_to_state = SquareMatrix.column trans_mx to_state_id
                                 let new_situations_in_state_to_flatten = 
                                     Array.mapi 
                                         (
                                             fun from_state_id situations_in_state ->
-                                                let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id) in
-                                                    convolute 
-                                                        filtering_fun 
-                                                        situations_in_state 
-                                                        transitions_from_state_id
+                                                let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id)
+                                                convolute 
+                                                    filtering_fun 
+                                                    situations_in_state 
+                                                    transitions_from_state_id
                                         ) 
                                         situations_mx 
                                 let new_situations_in_state = Array.fold 
@@ -58,6 +58,6 @@ module SSP =
         let res =  Seq.singleton sit
         (Situations res)
     let init_situation_matrix sit_in_state state_idx num_of_states =
-        let result = Array.create num_of_states Not_reachable in
+        let result = Array.create num_of_states Not_reachable
         Array.set result state_idx sit_in_state;
         result

@@ -9,20 +9,25 @@ module S =
     let _number_of_agents = ref (-1)
     let _number_of_states = ref (-1)
     let private _element_trans_fun input_rel_agent_id time_shift input_state =
-        let (base_agent,base_time) = Array.get input_state (input_rel_agent_id-1) in
+        let (base_agent,base_time) = Array.get input_state (input_rel_agent_id-1)
         (base_agent,base_time+time_shift)
     let private _are_conditional_agents_synchronized cond_ags state =
-        let agents_to_check = Array.map (fun i -> Array.get state (i-1)) cond_ags in
-        let _,reference_time = Array.get agents_to_check 0 in
-        let result,_ = Array.fold (fun (synchro_flag,ref_time) (_,t) -> synchro_flag && ref_time = t, ref_time ) (true,reference_time) agents_to_check in
+        let agents_to_check = Array.map (fun i -> Array.get state (i-1)) cond_ags
+        let _,reference_time = Array.get agents_to_check 0
+        let result,_ = Array.fold (fun (synchro_flag,ref_time) (_,t) -> synchro_flag && ref_time = t, ref_time ) (true,reference_time) agents_to_check
         result
     let private _trans_fun_template config state = 
         if _are_conditional_agents_synchronized config.conditional_agents state then
-            Array.init !_number_of_agents (fun i -> let input_rel_agent_id, time_shift = Map.find (i+1) config.perm_config in _element_trans_fun input_rel_agent_id time_shift state )
+            Array.init 
+                !_number_of_agents 
+                (fun i -> 
+                    let input_rel_agent_id, time_shift = Map.find (i+1) config.perm_config
+                    _element_trans_fun input_rel_agent_id time_shift state 
+                )
         else
             Array.init !_number_of_agents (fun _ -> (-1,-1))
     let private _make_config raw_trans = 
-        let cond_agents_list = ref [] in
+        let cond_agents_list = ref []
         let perm,i = List.fold 
                         (
                             fun (perm_config,i) (aid,ts) -> 
@@ -40,5 +45,5 @@ module S =
     let is_negligible s =
         Array.forall ( fun (_,t) -> t = -1 ) s
     let to_stirng state =
-        let res = Array.map (fun (ai,t) -> "("+ai.ToString()+","+t.ToString()+")") state |> Array.toList |> String.concat ";" in
+        let res = Array.map (fun (ai,t) -> "("+ai.ToString()+","+t.ToString()+")") state |> Array.toList |> String.concat ";"
         "{"+res+"}"

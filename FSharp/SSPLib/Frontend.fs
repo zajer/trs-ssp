@@ -122,7 +122,7 @@ module Frontend =
         array_matrix_of_trans_funs |> SquareMatrix.make
     let make_ssp_system raw_trans_funs state state_idx num_of_states =
       let transition_matrix = make_system_transformation_matrix (List.ofSeq raw_trans_funs)
-      let init_situation = SSP.init_situation_in_state state in
+      let init_situation = SSP.init_situation_in_state state
       let situation_matrix = SSP.init_situation_matrix init_situation state_idx num_of_states in
         situation_matrix,transition_matrix
     let is_state_reached sits_matrix state_idx = 

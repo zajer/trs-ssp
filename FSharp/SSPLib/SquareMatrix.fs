@@ -9,17 +9,17 @@ module SquareMatrix =
         let element = Array.get row column
         element
     let column matrix column =
-        let result = Array.init matrix.length  (fun i -> _get_element_in_ith_row_jth_column matrix i column ) in
-            result
+        let result = Array.init matrix.length  (fun i -> _get_element_in_ith_row_jth_column matrix i column )
+        result
     let make elts = 
-        let number_of_rows = Array.length elts in
-        let are_elts_valid = Array.fold (fun res row -> (Array.length row = number_of_rows) && res) true elts in
+        let number_of_rows = Array.length elts
+        let are_elts_valid = Array.fold (fun res row -> (Array.length row = number_of_rows) && res) true elts
         if are_elts_valid then
             {elements=elts;length=number_of_rows}
         else
             raise (invalidArg "elts" "Provided elements do not create square matrix")
     let init init_fun length= 
-        let elts = Array.init length (fun row -> Array.init length (fun column -> init_fun row column )) in
+        let elts = Array.init length (fun row -> Array.init length (fun column -> init_fun row column ))
         {elements=elts;length=length}
     let init_single init_elem length =
         let elts = Array.init length (fun _ -> Array.init length (fun _ -> init_elem ))
@@ -29,7 +29,7 @@ module SquareMatrix =
             matrix.elements
             row 
             (
-                let row_to_update = (Array.get matrix.elements row) in
+                let row_to_update = (Array.get matrix.elements row)
                 Array.set 
                     row_to_update
                     column 
