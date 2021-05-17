@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": 
+    [
+        {
+            "name": "debug-1",
+            "type":"coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/SSPApp/bin/Debug/net5.0/SSPApp.dll",
+            "args": [
+                "2", 
+                "6", 
+                "${workspaceFolder}/SSPApp/example_data/trans_funs_ex1.csv", 
+                "${workspaceFolder}/SSPApp/example_data/dest_states_ex1.csv", 
+                "50", 
+                "${workspaceFolder}/SSPApp/bin/Debug/net5.0/ex1_result.csv"
+            ]
+        },
+        {
+            "name": "debug-2",
+            "type":"coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/SSPApp/bin/Debug/net5.0/SSPApp.dll",
+            "args": [
+                "2", 
+                "6", 
+                "${workspaceFolder}/SSPApp/example_data/trans_funs_ex2.csv", 
+                "${workspaceFolder}/SSPApp/example_data/dest_states_ex1.csv",
+                "777", 
+                "${workspaceFolder}/SSPApp/bin/Debug/net5.0/ex2_result.csv"
+            ]
+        }
+        
+    ]
+}
