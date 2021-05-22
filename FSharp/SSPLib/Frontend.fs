@@ -78,6 +78,7 @@ module Frontend =
                                                       
         dest_states
     type destination_strategy = FirstFound | Random
+    type result_strategy = All | First
     let destination_state_idx strategy destination_states = 
       match strategy with 
       | FirstFound -> (Seq.head destination_states).state_idx
@@ -136,12 +137,13 @@ module Frontend =
       let result = ref sits_matrix
       let is_reached = ref (is_state_reached !result state_idx) 
       let iter = ref 0 
-      while not ( (!is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
-          result := SSP.multiply filtering_fun !result trans_matrix;
-          is_reached := is_state_reached !result state_idx;
-          if not !is_reached then
-            _fix_situations_in_state_to_not_reachable !result state_idx;
-          iter := !iter + 1
+      while ( (not !is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
+        printfn "Multiplying iteration: %d" !iter
+        result := SSP.multiply filtering_fun !result trans_matrix;
+        is_reached := is_state_reached !result state_idx;
+        if not !is_reached then
+          _fix_situations_in_state_to_not_reachable !result state_idx;
+        iter := !iter + 1
       done;
       !result,!iter,!is_reached
     let export_walk (walk:SS.walk) all_raw_trans_funs =
@@ -149,24 +151,22 @@ module Frontend =
       List.map (fun (we:S.trans_fun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
     let walk_from_situation_matrix strategy sm state_idx =
       match strategy with 
-      | FirstFound -> 
+      | First -> 
         (
           let situations_in_state = Array.get sm state_idx
           match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
           | SSP.Situations s_seq -> 
             let situation = List.ofSeq s_seq |> List.head
-            situation.current_walk
+            [|situation.current_walk|]
         )
-      | Random ->
+      | All ->
         (
           let rand = System.Random ()
           let situations_in_state = Array.get sm state_idx
           match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is unreachable")
           | SSP.Situations s_seq -> 
-          let situations = List.ofSeq s_seq
-          let situation_idx = rand.Next (List.length situations)
-          let situation = List.item situation_idx situations
-          situation.current_walk
+          let situations = Array.ofSeq s_seq
+          (Array.Parallel.map (fun (s:SS.situation) -> s.current_walk ) situations)
         )
