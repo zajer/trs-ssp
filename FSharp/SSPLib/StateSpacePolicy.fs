@@ -31,7 +31,7 @@ module SSP =
         | Not_reachable, Situations s2 -> Situations s2
         | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
     let multiply filtering_fun situations_mx trans_mx =
-        let result = Array.mapi 
+        let result = Array.Parallel.mapi 
                         (
                             fun to_state_id _ -> 
                                 let column_of_functions_to_state = SquareMatrix.column trans_mx to_state_id
