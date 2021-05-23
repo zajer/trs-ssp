@@ -135,7 +135,7 @@ module Frontend =
     let search_for_situation_in_state sits_matrix trans_matrix state_idx max_num_of_steps = 
       let (filtering_fun:SS.situation -> SS.situation option) = fun sit -> if S.is_negligible sit.current_state then None else Some sit
       let result = ref sits_matrix
-      let is_reached = ref (is_state_reached !result state_idx) 
+      let is_reached = ref false
       let iter = ref 0 
       while ( (not !is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
         printfn "Multiplying iteration: %d" !iter
@@ -158,7 +158,7 @@ module Frontend =
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
           | SSP.Situations s_seq -> 
             let situation = List.ofSeq s_seq |> List.head
-            [|situation.current_walk|]
+            [situation.current_walk]
         )
       | All ->
         (
@@ -167,6 +167,22 @@ module Frontend =
           match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is unreachable")
           | SSP.Situations s_seq -> 
-          let situations = Array.ofSeq s_seq
-          (Array.Parallel.map (fun (s:SS.situation) -> s.current_walk ) situations)
+          let situations = List.ofSeq s_seq
+          (List.map (fun (s:SS.situation) -> s.current_walk ) situations)
         )
+    let search_for_walks_leading_to_state sits_matrix trans_matrix state_idx max_num_of_steps = 
+      let steps_left = ref max_num_of_steps
+      let current_sits_matrix = ref sits_matrix
+      let result = ref []
+      let is_found_at_least_once = ref false
+      while !steps_left > 0 do
+        let situations_matrix,num_of_steps_used,is_found = search_for_situation_in_state !current_sits_matrix trans_matrix state_idx max_num_of_steps
+        if is_found then (
+          is_found_at_least_once := true;
+          result := walk_from_situation_matrix All situations_matrix state_idx @ !result
+        )
+        current_sits_matrix := situations_matrix
+        steps_left := !steps_left - num_of_steps_used
+        printfn "Steps left:%d" !steps_left
+      done;
+      !result,!is_found_at_least_once
