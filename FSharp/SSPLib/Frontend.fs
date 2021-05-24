@@ -95,7 +95,7 @@ module Frontend =
                                                 (S.num_of_states ()) 
                                                 (fun _ -> [])
                                         )
-      List.iter 
+      Seq.iter 
         (
           fun trans_fun -> 
             let row = trans_fun.from_idx
@@ -122,14 +122,14 @@ module Frontend =
         )
         array_matrix_of_trans_funs |> SquareMatrix.make
     let make_ssp_system raw_trans_funs state state_idx num_of_states =
-      let transition_matrix = make_system_transformation_matrix (List.ofSeq raw_trans_funs)
+      let transition_matrix = make_system_transformation_matrix raw_trans_funs
       let init_situation = SSP.init_situation_in_state state
       let situation_matrix = SSP.init_situation_matrix init_situation state_idx num_of_states in
         situation_matrix,transition_matrix
     let is_state_reached sits_matrix state_idx = 
       match Array.get sits_matrix state_idx with
       | SSP.Not_reachable -> false
-      | SSP.Situations s_seq -> not (List.isEmpty (List.ofSeq s_seq))
+      | SSP.Situations s_seq -> not (Seq.isEmpty s_seq)
     let _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
       Array.set sits_matrix state_idx SSP.Not_reachable
     let search_for_situation_in_state sits_matrix trans_matrix state_idx max_num_of_steps = 
@@ -157,8 +157,7 @@ module Frontend =
           match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
           | SSP.Situations s_seq -> 
-            let situation = List.ofSeq s_seq |> List.head
-            [situation.current_walk]
+            Seq.init 1 (fun _ -> (Seq.head s_seq).current_walk)
         )
       | All ->
         (
@@ -166,20 +165,19 @@ module Frontend =
           let situations_in_state = Array.get sm state_idx
           match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is unreachable")
-          | SSP.Situations s_seq -> 
-          let situations = List.ofSeq s_seq
-          (List.map (fun (s:SS.situation) -> s.current_walk ) situations)
+          | SSP.Situations s_seq ->
+          Seq.map (fun (s:SS.situation) -> s.current_walk ) s_seq 
         )
     let search_for_walks_leading_to_state sits_matrix trans_matrix state_idx max_num_of_steps = 
       let steps_left = ref max_num_of_steps
       let current_sits_matrix = ref sits_matrix
-      let result = ref []
+      let result = ref Seq.empty
       let is_found_at_least_once = ref false
       while !steps_left > 0 do
         let situations_matrix,num_of_steps_used,is_found = search_for_situation_in_state !current_sits_matrix trans_matrix state_idx max_num_of_steps
         if is_found then (
           is_found_at_least_once := true;
-          result := walk_from_situation_matrix All situations_matrix state_idx @ !result
+          result := Seq.append (walk_from_situation_matrix All situations_matrix state_idx) !result
         )
         current_sits_matrix := situations_matrix
         steps_left := !steps_left - num_of_steps_used

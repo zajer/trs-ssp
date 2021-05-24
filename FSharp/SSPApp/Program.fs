@@ -64,20 +64,19 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
     let situationsMatrix,_,is_found = Frontend.search_for_situation_in_state opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
     if is_found then
         printfn "%s" ("Desired state with id="+ opd.destinationStateIndex.ToString()+" found")
-        let resultWalks = Frontend.walk_from_situation_matrix conf.outputType situationsMatrix opd.destinationStateIndex |> Array.ofList
-        printfn "Found %d unique walks" (Array.length resultWalks)
+        let resultWalks = Frontend.walk_from_situation_matrix conf.outputType situationsMatrix opd.destinationStateIndex
+        printfn "Found %d unique walks" (Seq.length resultWalks)
         if saveResult then
-            saveResults (List.ofArray resultWalks) opd.destinationStateIndex opd.allImportedTransFuncs conf.outputFilePrefix
+            saveResults (List.ofSeq resultWalks) opd.destinationStateIndex opd.allImportedTransFuncs conf.outputFilePrefix
     else
         printfn "%s" ("Desired state has not been reached!")
 let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     let resultWalks,is_found = Frontend.search_for_walks_leading_to_state opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
     if is_found then
         printfn "%s" ("Desired state with id="+ opd.destinationStateIndex.ToString()+" found")
-        let walksAsArray = Array.ofList resultWalks
-        printfn "Found %d unique walks" (Array.length walksAsArray)
+        printfn "Found %d unique walks" (Seq.length resultWalks)
         if saveResult then
-            saveResults resultWalks opd.destinationStateIndex opd.allImportedTransFuncs conf.outputFilePrefix
+            saveResults (List.ofSeq resultWalks) opd.destinationStateIndex opd.allImportedTransFuncs conf.outputFilePrefix
     else
         printfn "%s" ("Desired state has not been reached!")
 let config2OperationalData conf =
