@@ -78,7 +78,7 @@ module Frontend =
                                                       
         dest_states
     type destination_strategy = FirstFound | Random
-    type result_strategy = All | First
+    type result_strategy = All | First | Bests of Filter.filter
     let destination_state_idx strategy destination_states = 
       match strategy with 
       | FirstFound -> (Seq.head destination_states).state_idx
@@ -150,25 +150,15 @@ module Frontend =
       let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transition_idx tf htf ) Map.empty all_raw_trans_funs;
       List.map (fun (we:S.trans_fun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
     let walk_from_situation_matrix strategy sm state_idx =
-      match strategy with 
-      | First -> 
-        (
-          let situations_in_state = Array.get sm state_idx
-          match situations_in_state with
+      let situations_in_state = Array.get sm state_idx
+      match situations_in_state with
           | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
           | SSP.Situations s_seq -> 
-            Seq.init 1 (fun _ -> (Seq.head s_seq).current_walk)
-        )
-      | All ->
-        (
-          let rand = System.Random ()
-          let situations_in_state = Array.get sm state_idx
-          match situations_in_state with
-          | SSP.Not_reachable -> raise (invalidArg "state_idx" "Desired state is unreachable")
-          | SSP.Situations s_seq ->
-          Seq.map (fun (s:SS.situation) -> s.current_walk ) s_seq 
-        )
-    let search_for_walks_leading_to_state sits_matrix trans_matrix state_idx max_num_of_steps = 
+            match strategy with 
+            | First -> Seq.init 1 (fun _ -> (Seq.head s_seq).current_walk)
+            | All -> Seq.map (fun (s:SS.situation) -> s.current_walk ) s_seq 
+            | Bests f -> Seq.filter f s_seq |> Seq.map (fun s -> s.current_walk) 
+    let search_for_walks_leading_to_state sits_matrix trans_matrix state_idx max_num_of_steps strategy = 
       let steps_left = ref max_num_of_steps
       let current_sits_matrix = ref sits_matrix
       let result = ref Seq.empty
@@ -177,7 +167,7 @@ module Frontend =
         let situations_matrix,num_of_steps_used,is_found = search_for_situation_in_state !current_sits_matrix trans_matrix state_idx max_num_of_steps
         if is_found then (
           is_found_at_least_once := true;
-          result := Seq.append (walk_from_situation_matrix All situations_matrix state_idx) !result
+          result := Seq.append (walk_from_situation_matrix strategy situations_matrix state_idx) !result
         )
         current_sits_matrix := situations_matrix
         steps_left := !steps_left - num_of_steps_used

@@ -32,7 +32,12 @@ let parseConfig argv =
         match Array.item 6 argv with
         | "first" -> Frontend.First
         | "all" -> Frontend.All
-        | "best" -> raise (new NotImplementedException ())
+        | "best" -> 
+            let limit = 2
+            let minEngagement = (double) 2.0
+            let n = ref 0
+            let filter = Filter.filterLimitedNumOfMostEngaging limit n minEngagement
+            Frontend.Bests filter
         | s -> raise ( invalidArg "resultStrategy" ("Result resolve strategy "+s+" is undefined"))
     let task = 
         match Array.item 7 argv with
@@ -71,7 +76,7 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
     else
         printfn "%s" ("Desired state has not been reached!")
 let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
-    let resultWalks,is_found = Frontend.search_for_walks_leading_to_state opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
+    let resultWalks,is_found = Frontend.search_for_walks_leading_to_state opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.outputType
     if is_found then
         printfn "%s" ("Desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         printfn "Found %d unique walks" (Seq.length resultWalks)
