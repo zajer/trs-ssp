@@ -74,9 +74,9 @@ module Frontend =
                                                                 state_idx = r.Item 0 |> int;
                                                                 patts_found = r.Item 1
                                                             }
-                                                      )
-                                                      
+                                                      )                                                
         dest_states
+    type computation_strategy = ComputeAll | ComputeLimited of int
     type destination_strategy = FirstFound | Random
     type result_strategy = All | First | Bests of Filter.filter
     let destination_state_idx strategy destination_states = 
@@ -132,20 +132,33 @@ module Frontend =
       | SSP.Situations s_seq -> not (Seq.isEmpty s_seq)
     let _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
       Array.set sits_matrix state_idx SSP.Not_reachable
+    let private _generic_search_for_situation_in_state 
+      isLimited
+      limitSize 
+      sits_matrix 
+      trans_matrix 
+      state_idx 
+      max_num_of_steps =
+        let (filtering_fun:SS.situation -> SS.situation option) = fun sit -> if S.is_negligible sit.current_state then None else Some sit
+        let result = ref sits_matrix
+        let is_reached = ref false
+        let iter = ref 0 
+        while ( (not !is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
+          //printfn "Multiplying iteration: %d" !iter
+          if not isLimited then
+            result := SSP.multiply filtering_fun !result trans_matrix
+          else
+            result := SSP.multiplyLimited filtering_fun !result trans_matrix limitSize
+          is_reached := is_state_reached !result state_idx;
+          if not !is_reached then
+            _fix_situations_in_state_to_not_reachable !result state_idx;
+          iter := !iter + 1
+        done;
+        !result,!iter,!is_reached
     let search_for_situation_in_state sits_matrix trans_matrix state_idx max_num_of_steps = 
-      let (filtering_fun:SS.situation -> SS.situation option) = fun sit -> if S.is_negligible sit.current_state then None else Some sit
-      let result = ref sits_matrix
-      let is_reached = ref false
-      let iter = ref 0 
-      while ( (not !is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
-        printfn "Multiplying iteration: %d" !iter
-        result := SSP.multiply filtering_fun !result trans_matrix;
-        is_reached := is_state_reached !result state_idx;
-        if not !is_reached then
-          _fix_situations_in_state_to_not_reachable !result state_idx;
-        iter := !iter + 1
-      done;
-      !result,!iter,!is_reached
+      _generic_search_for_situation_in_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps
+    let search_for_situation_in_state_limited sits_matrix trans_matrix state_idx max_num_of_steps limit =
+      _generic_search_for_situation_in_state true limit sits_matrix trans_matrix state_idx max_num_of_steps
     let export_walk (walk:SS.walk) all_raw_trans_funs =
       let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transition_idx tf htf ) Map.empty all_raw_trans_funs;
       List.map (fun (we:S.trans_fun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
@@ -158,19 +171,35 @@ module Frontend =
             | First -> Seq.init 1 (fun _ -> (Seq.head s_seq).current_walk)
             | All -> Seq.map (fun (s:SS.situation) -> s.current_walk ) s_seq 
             | Bests f -> Seq.filter f s_seq |> Seq.map (fun s -> s.current_walk) 
+    let private _generic_search_for_walks_leading_to_state 
+      isLimited
+      limit
+      sits_matrix 
+      trans_matrix 
+      state_idx 
+      max_num_of_steps 
+      strategy = 
+        let steps_left = ref max_num_of_steps
+        let current_sits_matrix = ref sits_matrix
+        let result = ref Seq.empty
+        let is_found_at_least_once = ref false
+        while !steps_left > 0 do
+          let situations_matrix,num_of_steps_used,is_found = 
+            if not isLimited then
+              search_for_situation_in_state !current_sits_matrix trans_matrix state_idx max_num_of_steps
+            else
+              search_for_situation_in_state_limited !current_sits_matrix trans_matrix state_idx max_num_of_steps limit
+          if is_found then (
+            printfn "Found a walk to a destination state in %d step" num_of_steps_used
+            is_found_at_least_once := true;
+            result := Seq.append (walk_from_situation_matrix strategy situations_matrix state_idx) !result
+          )
+          current_sits_matrix := situations_matrix
+          steps_left := !steps_left - num_of_steps_used
+          printfn "Remaining steps left:%d" !steps_left
+        done;
+        !result,!is_found_at_least_once
     let search_for_walks_leading_to_state sits_matrix trans_matrix state_idx max_num_of_steps strategy = 
-      let steps_left = ref max_num_of_steps
-      let current_sits_matrix = ref sits_matrix
-      let result = ref Seq.empty
-      let is_found_at_least_once = ref false
-      while !steps_left > 0 do
-        let situations_matrix,num_of_steps_used,is_found = search_for_situation_in_state !current_sits_matrix trans_matrix state_idx max_num_of_steps
-        if is_found then (
-          is_found_at_least_once := true;
-          result := Seq.append (walk_from_situation_matrix strategy situations_matrix state_idx) !result
-        )
-        current_sits_matrix := situations_matrix
-        steps_left := !steps_left - num_of_steps_used
-        printfn "Steps left:%d" !steps_left
-      done;
-      !result,!is_found_at_least_once
+      _generic_search_for_walks_leading_to_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps strategy
+    let search_for_walks_leading_to_state_limited sits_matrix trans_matrix state_idx max_num_of_steps strategy limit =
+      _generic_search_for_walks_leading_to_state true limit sits_matrix trans_matrix state_idx max_num_of_steps strategy
