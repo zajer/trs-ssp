@@ -30,30 +30,48 @@ module SSP =
         | Situations s1, Not_reachable -> Situations s1
         | Not_reachable, Situations s2 -> Situations s2
         | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
+    type multiplicationConfig = 
+        {   
+            limit:bool;
+            chunkSize:int;
+            filteringFunc:situation->option<situation>
+        }
+    let _limitSituationsAt_state chunkSize allSituationsAtState =
+        match allSituationsAtState with
+        | Not_reachable -> Not_reachable
+        | Situations sits -> Situations (Seq.truncate chunkSize sits)
+    let private _multiply config situations_mx trans_mx =
+        Array.Parallel.mapi 
+            (
+                fun to_state_id _ ->
+                    let column_of_functions_to_state = SquareMatrix.column trans_mx to_state_id
+                    let new_situations_in_state_to_flatten =
+                        Array.mapi
+                            (
+                                fun from_state_id situations_in_state ->
+                                    let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id)
+                                    convolute
+                                        config.filteringFunc
+                                        situations_in_state
+                                        transitions_from_state_id
+                            )
+                            situations_mx
+                    let new_situations_in_state = Array.fold
+                                                    (fun res_situation sits_to_merge -> _merge_situations_at_state res_situation sits_to_merge ) 
+                                                    Not_reachable 
+                                                    new_situations_in_state_to_flatten
+                    if config.limit then
+                        new_situations_in_state |> _limitSituationsAt_state config.chunkSize
+                    else
+                        new_situations_in_state
+            )
+            (Array.create trans_mx.length [])
     let multiply filtering_fun situations_mx trans_mx =
-        let result = Array.Parallel.mapi 
-                        (
-                            fun to_state_id _ -> 
-                                let column_of_functions_to_state = SquareMatrix.column trans_mx to_state_id
-                                let new_situations_in_state_to_flatten = 
-                                    Array.mapi 
-                                        (
-                                            fun from_state_id situations_in_state ->
-                                                let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id)
-                                                convolute 
-                                                    filtering_fun 
-                                                    situations_in_state 
-                                                    transitions_from_state_id
-                                        ) 
-                                        situations_mx 
-                                let new_situations_in_state = Array.fold 
-                                                                (fun res_situation sits_to_merge -> _merge_situations_at_state res_situation sits_to_merge ) 
-                                                                Not_reachable 
-                                                                new_situations_in_state_to_flatten
-                                new_situations_in_state
-                        ) 
-                        (Array.create trans_mx.length [])
-        result
+        let config = {limit=false;chunkSize=(-1);filteringFunc=filtering_fun}
+        _multiply config situations_mx trans_mx 
+    let multiplyLimited filtering_fun situations_mx trans_mx chunk_size = 
+        let config = {limit=true;chunkSize=chunk_size;filteringFunc=filtering_fun}
+        _multiply config situations_mx trans_mx
     let init_situation_in_state (sit:situation) =
         let res =  Seq.singleton sit
         (Situations res)
