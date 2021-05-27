@@ -1,10 +1,10 @@
 namespace SSPLib
 
 module SquareMatrix =
-    type 'a t = { elements: 'a array array; length:int}
+    type 'a matrix = { elements: 'a array array; length:int}
 
     let length matrix = matrix.length
-    let _get_element_in_ith_row_jth_column matrix row column =
+    let private _get_element_in_ith_row_jth_column matrix row column =
         let row = Array.get matrix.elements row
         let element = Array.get row column
         element
@@ -21,10 +21,10 @@ module SquareMatrix =
     let init init_fun length= 
         let elts = Array.init length (fun row -> Array.init length (fun column -> init_fun row column ))
         {elements=elts;length=length}
-    let init_single init_elem length =
-        let elts = Array.init length (fun _ -> Array.init length (fun _ -> init_elem ))
+    let initSingleValue initElem length =
+        let elts = Array.init length (fun _ -> Array.init length (fun _ -> initElem ))
         {elements=elts;length=length}
-    let update matrix row column new_val = 
+    let update matrix row column newVal = 
         Array.set 
             matrix.elements
             row 
@@ -33,10 +33,10 @@ module SquareMatrix =
                 Array.set 
                     row_to_update
                     column 
-                    new_val;
+                    newVal;
                     row_to_update
             )
-    let to_string func matrix =
+    let toString func matrix =
         Array.map 
             (
                 fun row -> 

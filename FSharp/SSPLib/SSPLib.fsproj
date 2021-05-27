@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="State.fs" />
+    <Compile Include="Data.fs" />
     <Compile Include="StateSpace.fs" />
     <Compile Include="SquareMatrix.fs" />
     <Compile Include="StateSpacePolicy.fs" />

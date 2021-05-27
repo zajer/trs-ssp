@@ -16,13 +16,13 @@ module Config =
             destinationStatesFile:string;
             numOfSteps:int;
             outputFilePrefix:string;
-            outputType: Frontend.result_strategy 
+            outputType: Frontend.resultStrategy 
             taskType: taskType
-            computationStrategy: Frontend.computation_strategy
+            computationStrategy: Frontend.computationStrategy
         }
     type operationalData = {
-            initialSituationMatrix : SSP.situations_in_state array;
-            transitionMatrix: SquareMatrix.t<SSP.courses_between_situations>;
+            initialSituationMatrix : StateSpacePolicy.situationsInState array;
+            transitionMatrix: SquareMatrix.matrix<StateSpacePolicy.coursesBetweenSituations>;
             allImportedTransFuncs:seq<trans_fun_raw>;
             destinationStateIndex:int
         }

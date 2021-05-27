@@ -1,16 +1,14 @@
 namespace SSPLib
 
-module SS =
-    type state = S.t
-    type state_trans_fun = S.trans_fun 
-    type walk = state_trans_fun list
-    type situation =  { current_state:state; current_walk:walk }
+module StateSpace =
+    type walk = State.transFun list
+    type situation =  { currentSAT:State.sat; currentWalk:walk }
     
-    let advance_situation situation (trans_fun:state_trans_fun) =
-        let new_state = trans_fun.func situation.current_state 
-        let new_walk = trans_fun :: situation.current_walk
-        { current_state=new_state; current_walk=new_walk }
-    let init_situation state = 
-        { current_state=state; current_walk=[] }
+    let advanceSituation situation (transFun:State.transFun) =
+        let newSAT = transFun.func situation.currentSAT 
+        let newWalk = transFun :: situation.currentWalk
+        { currentSAT=newSAT; currentWalk=newWalk }
+    let initSituation sat = 
+        { currentSAT=sat; currentWalk=[] }
         
     

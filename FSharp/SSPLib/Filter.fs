@@ -1,13 +1,13 @@
 namespace SSPLib
 
 module Filter =
-    type filter = SS.situation -> bool
-    let filterMostEngaging (minEngagement:double) (sit:SS.situation) =
-        let _,maxEngagement = Array.maxBy (fun (_,t)-> t) sit.current_state
+    type filter = StateSpace.situation -> bool
+    let filterMostEngaging (minEngagement:double) (sit:StateSpace.situation) =
+        let _,maxEngagement = Array.maxBy (fun (_,t)-> t) sit.currentSAT
         let metric = Array.fold 
                             ( fun (m:double) (_,i2)-> m + ( (double) i2 / (double) maxEngagement ) ) 
                             0.0
-                            sit.current_state 
+                            sit.currentSAT
         metric >= minEngagement
     let filterLimitedNumOfMostEngaging lim n minEngagement sit =
         if !n < lim then
