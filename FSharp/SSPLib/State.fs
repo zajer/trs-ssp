@@ -56,5 +56,3 @@ module State =
     let toStirng state =
         let res = Array.map (fun (ai,state) -> "("+ai.ToString()+","+state.ToString()+")") state |> Array.toList |> String.concat ";"
         "{"+res+"}"
-    let ofArray (a:(int*int) array) : sat =
-        a
