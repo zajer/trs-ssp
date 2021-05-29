@@ -10,4 +10,11 @@
   <ItemGroup>
     <ProjectReference Include="..\SSPLib\SSPLib.fsproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="./example_data/ex1-config.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/dest_states_ex1.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/trans_funs_ex1.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/ex2-config.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/trans_funs_ex2.csv" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
 </Project>

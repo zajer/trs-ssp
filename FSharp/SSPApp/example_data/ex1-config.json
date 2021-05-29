@@ -1,0 +1,15 @@
+{
+  "numberOfAgents": 2,
+  "numberOfStates": 6,
+  "transitionFunctionsFile": "./example_data/trans_funs_ex1.csv",
+  "destinationStatesFile": "./example_data/dest_states_ex1.csv",
+  "numberOfSteps": 10,
+  "outputFilePrefix": "ex1",
+  "task": "first found",
+  "resultStrategy": "first",
+  "computationStrategy": "all",
+  "destinationStrategy": "first found",
+  "forceNoIdling": false,
+  "printSATs":true
+}
+        

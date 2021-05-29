@@ -115,11 +115,11 @@ module Frontend =
         while !steps_left > 0 do
           let situations_matrix,num_of_steps_used,is_found = 
             if not isLimited then
-              searchForSituationInState !current_sits_matrix trans_matrix state_idx max_num_of_steps
+              searchForSituationInState !current_sits_matrix trans_matrix state_idx !steps_left
             else
-              searchForSituationInStateLimited !current_sits_matrix trans_matrix state_idx max_num_of_steps limit
+              searchForSituationInStateLimited !current_sits_matrix trans_matrix state_idx !steps_left limit
           if is_found then (
-            printfn "Found a walk to a destination state in %d step" num_of_steps_used
+            printfn "Found a walk to a destination state in %d step(s)" num_of_steps_used
             is_found_at_least_once := true;
             result := Seq.append (getWalkFromSituationMatrix strategy situations_matrix state_idx) !result
             if forceNoIdling then
