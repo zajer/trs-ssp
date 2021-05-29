@@ -64,16 +64,15 @@ module Frontend =
       trans_matrix 
       state_idx 
       max_num_of_steps =
-        let (filtering_fun:StateSpace.situation -> StateSpace.situation option) = fun sit -> if State.isNegligible sit.currentSAT then None else Some sit
         let result = ref sits_matrix
         let is_reached = ref false
         let iter = ref 0 
         while ( (not !is_reached) && if max_num_of_steps <> -1 then !iter < max_num_of_steps else true ) do
           //printfn "Multiplying iteration: %d" !iter
           if not isLimited then
-            result := StateSpacePolicy.multiply filtering_fun !result trans_matrix
+            result := StateSpacePolicy.multiply !result trans_matrix
           else
-            result := StateSpacePolicy.multiplyLimited filtering_fun !result trans_matrix limitSize
+            result := StateSpacePolicy.multiplyLimited !result trans_matrix limitSize
           is_reached := isStateReached !result state_idx;
           if not !is_reached then
             _fix_situations_in_state_to_not_reachable !result state_idx;

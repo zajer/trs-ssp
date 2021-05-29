@@ -6,7 +6,7 @@ module StateSpacePolicy =
     type systemSituationMatrix = situationsInState array
     type systemTransformationMatrix = coursesBetweenSituations SquareMatrix.matrix
 
-    let convolute filtering_fun situations  courses = 
+    let convolute situations courses = 
         match situations,courses with
         | Not_reachable,No_transitions -> Not_reachable
         | Situations _, No_transitions -> Not_reachable
@@ -16,7 +16,7 @@ module StateSpacePolicy =
                             (
                                 fun sit -> 
                                     let new_situations = Seq.choose 
-                                                            (fun trans_fun -> StateSpace.advanceSituation sit trans_fun |> filtering_fun) 
+                                                            (fun trans_fun -> StateSpace.advanceSituation sit trans_fun |> StateSpace.filteringFun) 
                                                             trans_funs
                                     new_situations
                             )
@@ -32,7 +32,6 @@ module StateSpacePolicy =
         {   
             limit:bool;
             chunkSize:int;
-            filteringFunc:StateSpace.situation->option<StateSpace.situation>
         }
     let private _limitSituationsAt_state chunkSize allSituationsAtState =
         match allSituationsAtState with
@@ -49,7 +48,6 @@ module StateSpacePolicy =
                                 fun from_state_id situations_in_state ->
                                     let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id)
                                     convolute
-                                        config.filteringFunc
                                         situations_in_state
                                         transitions_from_state_id
                             )
@@ -64,11 +62,11 @@ module StateSpacePolicy =
                         new_situations_in_state
             )
             (Array.create transMX.length [])
-    let multiply filteringFun (situationsMX:systemSituationMatrix) transMX =
-        let config = {limit=false;chunkSize=(-1);filteringFunc=filteringFun}
+    let multiply (situationsMX:systemSituationMatrix) transMX =
+        let config = {limit=false;chunkSize=(-1)}
         _multiply config situationsMX transMX 
-    let multiplyLimited filteringFun (situationsMX:systemSituationMatrix) transMX maxResSize = 
-        let config = {limit=true;chunkSize=maxResSize;filteringFunc=filteringFun}
+    let multiplyLimited (situationsMX:systemSituationMatrix) transMX maxResSize = 
+        let config = {limit=true;chunkSize=maxResSize}
         _multiply config situationsMX transMX
     let initSituationInState (sit:StateSpace.situation) =
         let res =  Seq.singleton sit

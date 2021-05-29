@@ -10,5 +10,6 @@ module StateSpace =
         { currentSAT=newSAT; currentWalk=newWalk }
     let initSituation sat = 
         { currentSAT=sat; currentWalk=[] }
+    let (filteringFun:situation -> situation option) = fun sit -> if State.isNegligible sit.currentSAT then None else Some sit
         
     
