@@ -8,5 +8,6 @@
   "resultStrategy": "best:2:2.01",
   "task": "search until",
   "computationStrategy": "limit:3",
-  "destinationStrategy": "first found"
+  "destinationStrategy": "first found",
+  "forceNoIdling": true
 }

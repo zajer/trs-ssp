@@ -8,5 +8,6 @@
   "resultStrategy": "all",
   "task": "search until count",
   "computationStrategy": "all",
-  "destinationStrategy": "ff"
+  "destinationStrategy": "ff",
+  "forceNoIdling": true
 }

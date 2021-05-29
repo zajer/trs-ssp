@@ -8,5 +8,6 @@
   "resultStrategy": "first",
   "task": "ff",
   "computationStrategy": "limit:777",
-  "destinationStrategy": "random"
+  "destinationStrategy": "random",
+  "forceNoIdling": false
 }

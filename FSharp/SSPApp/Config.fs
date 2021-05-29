@@ -19,7 +19,8 @@ module Config =
             task: taskType;
             resultStrategy: Frontend.resultStrategy;
             computationStrategy: Frontend.computationStrategy;
-            destinationStrategy: Frontend.destinationStrategy
+            destinationStrategy: Frontend.destinationStrategy;
+            forceNoIdling: bool
         }
     type operationalData = {
             initialSituationMatrix : StateSpacePolicy.situationsInState array;
@@ -38,15 +39,16 @@ module Config =
       "task": "search until",
       "resultStrategy": "best:2:2.0",
       "computationStrategy": "limit:3",
-      "destinationStrategy": "first found"
-    }
-        """
+      "destinationStrategy": "first found",
+      "forceNoIdling":true
+    }"""
     type ConfigProvider = JsonProvider<sampleConfigJson>
     let private _parseResultStrategy resultStrategy = 
-        let (|FirstMatched|AllMatched|BestMatched|) input =
+        let (|FirstMatched|AllMatched|BestMatched|BestAvailableMatched|) input =
             let fr = Regex("first")
             let ar = Regex("all")
             let br = Regex("best:[0-9]+:[0-9]+\\.[0-9]+")
+            let bar = Regex("best available:[0-9]+")
             if fr.IsMatch(input) then
                 FirstMatched
             else if ar.IsMatch(input) then
@@ -55,6 +57,9 @@ module Config =
                 let numOfResults = Regex("[0-9]+").Match(input)
                 let minEngagement = Regex("[0-9]+\\.[0-9]+").Match(input)
                 BestMatched (numOfResults.Value,minEngagement.Value)
+            else if bar.IsMatch(input) then
+                let numOfResults = Regex("[0-9]+").Match(input)
+                BestAvailableMatched numOfResults.Value
             else
                 raise ( invalidArg "resultStrategy" ("Result resolve strategy "+input+" is undefined"))
         match resultStrategy with
@@ -66,6 +71,10 @@ module Config =
             let currentNumOfResults = ref 0
             let filter = Filter.filterLimitedNumOfMostEngaging limitOfResults currentNumOfResults minEngagement
             Frontend.Bests filter
+        | BestAvailableMatched limitOfResultsStr ->
+            let limitOfResults = int limitOfResultsStr
+            Frontend.BestsAvailable (Filter.calcMetric,limitOfResults)
+
     let private _parseTask task = 
         match task with
             | "ff" | "first found" -> FirstFound
@@ -104,7 +113,8 @@ module Config =
             resultStrategy=_parseResultStrategy config.ResultStrategy;
             task= _parseTask config.Task;
             computationStrategy= _parseComputationStrategy config.ComputationStrategy;
-            destinationStrategy=_parseDestinationStrategy config.DestinationStrategy
+            destinationStrategy=_parseDestinationStrategy config.DestinationStrategy;
+            forceNoIdling=config.ForceNoIdling;
         }
     let requiredNumberOfArgs = 2
     type mode = Example | GenerateWalks 

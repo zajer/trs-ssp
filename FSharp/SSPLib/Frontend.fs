@@ -3,7 +3,7 @@ namespace SSPLib
 module Frontend =
     type computationStrategy = ComputeAll | ComputeLimited of int
     type destinationStrategy = FirstFound | Random
-    type resultStrategy = All | First | Bests of Filter.filter
+    type resultStrategy = All | First | Bests of Filter.filter | BestsAvailable of (Filter.metric*int)
     let chooseDestinationStateIdx strategy destinationStates = 
       match strategy with 
       | FirstFound -> (Seq.head destinationStates).state_idx
@@ -87,15 +87,18 @@ module Frontend =
     let exportWalk (walk:StateSpace.walk) all_raw_trans_funs =
       let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transitionIdx tf htf ) Map.empty all_raw_trans_funs;
       List.map (fun (we:State.transFun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
-    let getWalkFromSituationMatrix strategy sm state_idx =
-      let situations_in_state = Array.get sm state_idx
+    let getWalkFromSituationMatrix strategy sm stateIdx =
+      let situations_in_state = Array.get sm stateIdx
       match situations_in_state with
           | StateSpacePolicy.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
           | StateSpacePolicy.Situations s_seq -> 
             match strategy with 
             | First -> Seq.init 1 (fun _ -> (Seq.head s_seq).currentWalk)
             | All -> Seq.map (fun (s:StateSpace.situation) -> s.currentWalk ) s_seq 
-            | Bests f -> Seq.filter f s_seq |> Seq.map (fun s -> s.currentWalk) 
+            | Bests f -> Seq.filter f s_seq |> Seq.map (fun s -> s.currentWalk)
+            | BestsAvailable (m,n) -> 
+              let sorted = Seq.sortByDescending m s_seq
+              Seq.truncate n sorted |> Seq.map (fun s -> s.currentWalk)
     let private _generic_search_for_walks_leading_to_state 
       isLimited
       limit
@@ -103,7 +106,8 @@ module Frontend =
       trans_matrix 
       state_idx 
       max_num_of_steps 
-      strategy = 
+      strategy
+      forceNoIdling = 
         let steps_left = ref max_num_of_steps
         let current_sits_matrix = ref sits_matrix
         let result = ref Seq.empty
@@ -118,13 +122,15 @@ module Frontend =
             printfn "Found a walk to a destination state in %d step" num_of_steps_used
             is_found_at_least_once := true;
             result := Seq.append (getWalkFromSituationMatrix strategy situations_matrix state_idx) !result
+            if forceNoIdling then
+              Array.set situations_matrix state_idx StateSpacePolicy.Not_reachable
           )
           current_sits_matrix := situations_matrix
           steps_left := !steps_left - num_of_steps_used
           printfn "Remaining steps left:%d" !steps_left
         done;
         !result,!is_found_at_least_once
-    let searchForWalksLeadingToState sits_matrix trans_matrix state_idx max_num_of_steps strategy = 
-      _generic_search_for_walks_leading_to_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps strategy
-    let searchForWalksLeadingToStateLimited sits_matrix trans_matrix state_idx max_num_of_steps strategy limit =
-      _generic_search_for_walks_leading_to_state true limit sits_matrix trans_matrix state_idx max_num_of_steps strategy
+    let searchForWalksLeadingToState sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling = 
+      _generic_search_for_walks_leading_to_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling
+    let searchForWalksLeadingToStateLimited sits_matrix trans_matrix state_idx max_num_of_steps strategy limit noIdling =
+      _generic_search_for_walks_leading_to_state true limit sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling

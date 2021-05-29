@@ -28,8 +28,8 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
 let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     let resultWalks,is_found = 
         match conf.computationStrategy with
-        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy
-        | SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy limit
+        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy conf.forceNoIdling
+        | SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy limit conf.forceNoIdling
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         printfn "Found %d unique walks" (Seq.length resultWalks)
@@ -62,7 +62,7 @@ let main argv =
             let opd = config2OperationalData config
             match config.task with
             | FirstFound -> performFindFirstRoutine config opd true
-            |  SearchUntil -> performSearchUntilRoutine config opd true
+            | SearchUntil -> performSearchUntilRoutine config opd true
             | FirstFoundCount -> performFindFirstRoutine config opd false
             | SearchUntilCount -> performSearchUntilRoutine config opd false
         | Example -> 
