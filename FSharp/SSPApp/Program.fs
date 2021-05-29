@@ -22,7 +22,7 @@ let printSATs numOfAgents (resultWalks:seq<SSPLib.StateSpace.walk>) =
                                     newSat :: satList
                                 ) 
                                 [(Array.init numOfAgents (fun i -> (i+1,0)))]
-                                w
+                                (w |> List.rev)
                         ) 
                         resultWalks
     Seq.iteri (fun i walkAsSATs -> 
