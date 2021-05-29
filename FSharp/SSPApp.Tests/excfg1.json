@@ -1,0 +1,12 @@
+{
+  "numberOfAgents": 3,
+  "numberOfStates": 100000,
+  "transitionFunctionsFile": "trans_funs.csv",
+  "destinationStatesFile": "dest_states.csv",
+  "numberOfSteps": 40,
+  "outputFilePrefix": "result",
+  "resultStrategy": "best:2:2.01",
+  "task": "search until",
+  "computationStrategy": "limit:3",
+  "destinationStrategy": "first found"
+}

@@ -9,6 +9,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SSPApp", "SSPApp\SSPApp.fsp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SSPLib.Tests", "SSPLib.Tests\SSPLib.Tests.fsproj", "{A1F740CC-C3B2-4EFD-8864-B42EA0287295}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SSPApp.Tests", "SSPApp.Tests\SSPApp.Tests.fsproj", "{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +60,17 @@ Global
 		{A1F740CC-C3B2-4EFD-8864-B42EA0287295}.Release|x64.Build.0 = Release|Any CPU
 		{A1F740CC-C3B2-4EFD-8864-B42EA0287295}.Release|x86.ActiveCfg = Release|Any CPU
 		{A1F740CC-C3B2-4EFD-8864-B42EA0287295}.Release|x86.Build.0 = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|x64.Build.0 = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Debug|x86.Build.0 = Debug|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|x64.ActiveCfg = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|x64.Build.0 = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|x86.ActiveCfg = Release|Any CPU
+		{4CC6D2F2-CDF9-4C14-9F81-D3CBD53E5FC4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

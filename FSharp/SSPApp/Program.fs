@@ -19,7 +19,7 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
         | SSPLib.Frontend.ComputeLimited limit -> SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps limit
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
-        let resultWalks = SSPLib.Frontend.getWalkFromSituationMatrix conf.outputType situationsMatrix opd.destinationStateIndex
+        let resultWalks = SSPLib.Frontend.getWalkFromSituationMatrix conf.resultStrategy situationsMatrix opd.destinationStateIndex
         printfn "Found %d unique walks" (Seq.length resultWalks)
         if saveResult then
             saveResults resultWalks opd.allImportedTransFuncs conf.outputFilePrefix
@@ -28,8 +28,8 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
 let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     let resultWalks,is_found = 
         match conf.computationStrategy with
-        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.outputType
-        | SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.outputType limit
+        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy
+        | SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy limit
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         printfn "Found %d unique walks" (Seq.length resultWalks)
@@ -40,7 +40,7 @@ let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
 let config2OperationalData conf =
     let importedTransFuns = SSPLib.Data.importTransFuns conf.transitionFunctionsFile
     let destStates = SSPLib.Data.importDestStates conf.destinationStatesFile
-    let destStateIdx = SSPLib.Frontend.chooseDestinationStateIdx SSPLib.Frontend.FirstFound destStates
+    let destStateIdx = SSPLib.Frontend.chooseDestinationStateIdx conf.destinationStrategy destStates
     let initSituation = Array.init conf.numOfAgents (fun i -> i+1,0) |> SSPLib.StateSpace.initSituation 
     let initSituationMatrix,transitionMatrix = SSPLib.Frontend.makeSystem importedTransFuns initSituation 0 (SSPLib.State.numberOfStates ())
     {
@@ -60,7 +60,7 @@ let main argv =
             let config = parseConfigFromJson file
             SSPLib.State.setValues true config.numOfAgents config.numOfStates
             let opd = config2OperationalData config
-            match config.taskType with
+            match config.task with
             | FirstFound -> performFindFirstRoutine config opd true
             |  SearchUntil -> performSearchUntilRoutine config opd true
             | FirstFoundCount -> performFindFirstRoutine config opd false
