@@ -4,12 +4,23 @@
     "version": "2.0.0",
     "tasks": [
         { 
-            "label": ".NET Core Test with debugger", 
+            "label": "Test SSPLib with debugger", 
             "type": "process", 
             "isBackground": true, 
             "command": "dotnet", 
             "args": [ "test" ], 
             "options": { "cwd": "${workspaceFolder}/SSPLib.Tests", "env": { "VSTEST_HOST_DEBUG": "1" }, }, 
+            "group": "test", 
+            "presentation": { "echo": true, "reveal": "always", "focus": false, "panel": "shared" }, 
+            "problemMatcher": [] 
+        },
+        { 
+            "label": "Test SSPApp with debugger", 
+            "type": "process", 
+            "isBackground": true, 
+            "command": "dotnet", 
+            "args": [ "test" ], 
+            "options": { "cwd": "${workspaceFolder}/SSPApp.Tests", "env": { "VSTEST_HOST_DEBUG": "1" }, }, 
             "group": "test", 
             "presentation": { "echo": true, "reveal": "always", "focus": false, "panel": "shared" }, 
             "problemMatcher": [] 

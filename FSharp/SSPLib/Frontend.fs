@@ -1,8 +1,5 @@
 namespace SSPLib
 
-open FSharp.Data
-open System.Text.RegularExpressions
-
 module Frontend =
     type computationStrategy = ComputeAll | ComputeLimited of int
     type destinationStrategy = FirstFound | Random
