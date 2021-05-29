@@ -21,6 +21,7 @@ module Config =
             computationStrategy: Frontend.computationStrategy;
             destinationStrategy: Frontend.destinationStrategy;
             forceNoIdling: bool
+            printSATs:bool
         }
     type operationalData = {
             initialSituationMatrix : StateSpacePolicy.situationsInState array;
@@ -40,7 +41,8 @@ module Config =
       "resultStrategy": "best:2:2.0",
       "computationStrategy": "limit:3",
       "destinationStrategy": "first found",
-      "forceNoIdling":true
+      "forceNoIdling":true,
+      "printSATs":true
     }"""
     type ConfigProvider = JsonProvider<sampleConfigJson>
     let private _parseResultStrategy resultStrategy = 
@@ -115,6 +117,7 @@ module Config =
             computationStrategy= _parseComputationStrategy config.ComputationStrategy;
             destinationStrategy=_parseDestinationStrategy config.DestinationStrategy;
             forceNoIdling=config.ForceNoIdling;
+            printSATs=config.PrintSaTs
         }
     let requiredNumberOfArgs = 2
     type mode = Example | GenerateWalks 

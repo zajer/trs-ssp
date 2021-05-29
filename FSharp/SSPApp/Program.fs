@@ -12,6 +12,25 @@ let saveResults resultWalks importedTransFuns outputFilePrefix =
                     SSPLib.Data.exportTransFuns tf ( outputFilePrefix+"_"+i.ToString()+".csv")
         )
         walksAsArray
+let printSATs numOfAgents (resultWalks:seq<SSPLib.StateSpace.walk>) =
+    let numOfResults = Seq.length resultWalks
+    let walksAsSATs = Seq.map 
+                        (fun w -> 
+                            List.fold 
+                                (fun satList (tf:SSPLib.State.transFun) ->  
+                                    let newSat = (tf.func (List.head satList))
+                                    newSat :: satList
+                                ) 
+                                [(Array.init numOfAgents (fun i -> (i+1,0)))]
+                                w
+                        ) 
+                        resultWalks
+    Seq.iteri (fun i walkAsSATs -> 
+                            let walkInProperOrder = List.rev walkAsSATs
+                            let walkAsString = List.map (fun sat -> SSPLib.State.toStirng sat) walkInProperOrder |> String.concat "->\n"
+                            printfn "Result %d: Consecutive SATs:\n%s" (numOfResults-i) walkAsString
+            )
+            walksAsSATs
 let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult= 
     let situationsMatrix,_,is_found = 
         match conf.computationStrategy with
@@ -21,6 +40,8 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         let resultWalks = SSPLib.Frontend.getWalkFromSituationMatrix conf.resultStrategy situationsMatrix opd.destinationStateIndex
         printfn "Found %d unique walks" (Seq.length resultWalks)
+        if conf.printSATs then
+            printSATs conf.numOfAgents resultWalks
         if saveResult then
             saveResults resultWalks opd.allImportedTransFuncs conf.outputFilePrefix
     else
@@ -33,6 +54,8 @@ let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         printfn "Found %d unique walks" (Seq.length resultWalks)
+        if conf.printSATs then
+            printSATs conf.numOfAgents resultWalks
         if saveResult then
             saveResults resultWalks opd.allImportedTransFuncs conf.outputFilePrefix
     else
