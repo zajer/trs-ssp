@@ -134,5 +134,5 @@ let main argv =
             | SearchUntilCount -> performSearchUntilRoutine config opd false
         | Example -> 
             let exampleConfig = ConfigProvider.GetSample ()
-            System.IO.File.WriteAllText(file+".json", sampleConfigJson)
+            System.IO.File.WriteAllText(file+".json", SAMPLE_CONFIG_JSON)
     0 // return an integer exit code

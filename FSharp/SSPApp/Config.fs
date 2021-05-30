@@ -30,7 +30,7 @@ module Config =
             destinationStateIndex:int
         }
     [<Literal>]
-    let sampleConfigJson = """{
+    let SAMPLE_CONFIG_JSON = """{
       "numberOfAgents": 777,
       "numberOfStates": 100000,
       "transitionFunctionsFile": "trans_funs.csv",
@@ -43,7 +43,7 @@ module Config =
       "forceNoIdling":true,
       "printSATs":true
     }"""
-    type ConfigProvider = JsonProvider<sampleConfigJson>
+    type ConfigProvider = JsonProvider<SAMPLE_CONFIG_JSON>
     let private _parseResultStrategy resultStrategy = 
         let (|FirstMatched|AllMatched|BestMatched|) input =
             let fr = Regex("first")
