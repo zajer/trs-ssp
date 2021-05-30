@@ -26,6 +26,16 @@
             ]
         },
         {
+            "name": "debug-superslim",
+            "type":"coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/SSPApp/bin/Debug/net5.0/SSPApp.dll",
+            "args": [
+                "gen", 
+                "./example_data/superslim-config.json"
+            ]
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",

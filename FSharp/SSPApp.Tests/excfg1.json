@@ -5,9 +5,9 @@
   "destinationStatesFile": "dest_states.csv",
   "numberOfSteps": 40,
   "outputFilePrefix": "result",
-  "resultStrategy": "best:2:2.01",
+  "resultStrategy": "best:2",
   "task": "search until",
-  "computationStrategy": "limit:3",
   "destinationStrategy": "first found",
-  "forceNoIdling": true
+  "forceNoIdling": true,
+  "printSATs":true
 }

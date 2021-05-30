@@ -1,0 +1,14 @@
+{
+  "numberOfAgents": 2,
+  "numberOfStates": 666,
+  "transitionFunctionsFile": "./example_data/superslim_ssp_input.csv",
+  "destinationStatesFile": "./example_data/superslim_dest_states.csv",
+  "numberOfSteps": 18,
+  "outputFilePrefix": "mdpi2",
+  "task": "search until count",
+  "resultStrategy": "best:1",
+  "destinationStrategy": "first found",
+  "forceNoIdling": false,
+  "printSATs":true
+}
+        

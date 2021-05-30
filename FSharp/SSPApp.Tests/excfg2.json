@@ -7,7 +7,7 @@
   "outputFilePrefix": "result2",
   "resultStrategy": "all",
   "task": "search until count",
-  "computationStrategy": "all",
   "destinationStrategy": "ff",
-  "forceNoIdling": true
+  "forceNoIdling": true,
+  "printSATs":false
 }

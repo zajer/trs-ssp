@@ -7,7 +7,7 @@
   "outputFilePrefix": "r3",
   "resultStrategy": "first",
   "task": "ff",
-  "computationStrategy": "limit:777",
   "destinationStrategy": "random",
-  "forceNoIdling": false
+  "forceNoIdling": false,
+  "printSATs":true
 }
