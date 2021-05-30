@@ -26,7 +26,7 @@ module Config =
     type operationalData = {
             initialSituationMatrix : StateSpacePolicy.situationsInState array;
             transitionMatrix: SquareMatrix.matrix<StateSpacePolicy.coursesBetweenSituations>;
-            allImportedTransFuncs:seq<trans_fun_raw>;
+            allImportedTransFuncs:seq<transFunRaw>;
             destinationStateIndex:int
         }
     [<Literal>]

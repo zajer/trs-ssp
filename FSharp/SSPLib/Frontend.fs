@@ -4,11 +4,11 @@ module Frontend =
     type destinationStrategy = FirstFound | Random
     let chooseDestinationStateIdx strategy destinationStates = 
       match strategy with 
-      | FirstFound -> (Seq.head destinationStates).state_idx
+      | FirstFound -> (Seq.head destinationStates).stateIdx
       | Random ->
         let rand = System.Random ();
         let sequence_idx = rand.Next(Seq.length destinationStates)
-        (Seq.item sequence_idx destinationStates).state_idx
+        (Seq.item sequence_idx destinationStates).stateIdx
     let makeSystemTransformationMatrix trans_funs =
       let array_matrix_of_trans_funs = Array.init 
                                         (State.numberOfStates ()) 
@@ -37,7 +37,7 @@ module Frontend =
               (
                 fun lotf -> 
                   if List.isEmpty lotf then 
-                    StateSpacePolicy.No_transitions 
+                    StateSpacePolicy.NoTransitions 
                   else 
                     StateSpacePolicy.Courses (List.toSeq lotf) 
               ) 
@@ -51,10 +51,10 @@ module Frontend =
         situation_matrix,transition_matrix
     let isStateReached sits_matrix state_idx = 
       match Array.get sits_matrix state_idx with
-      | StateSpacePolicy.Not_reachable -> false
+      | StateSpacePolicy.NotReachable -> false
       | StateSpacePolicy.Situations s_seq -> not (Seq.isEmpty s_seq)
     let private _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
-      Array.set sits_matrix state_idx StateSpacePolicy.Not_reachable
+      Array.set sits_matrix state_idx StateSpacePolicy.NotReachable
     let private _searchForSituationInState 
       isLimited
       filterFun
@@ -84,11 +84,11 @@ module Frontend =
       _searchForSituationInState true filter maxResultSize situationsMatrix transMatrix destinationStateIdx maxNumOfSteps
     let exportWalk (walk:StateSpace.walk) all_raw_trans_funs =
       let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transitionIdx tf htf ) Map.empty all_raw_trans_funs;
-      List.map (fun (we:State.transFun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
+      List.map (fun (we:State.transFun) -> Map.find we.transitionIdx hashed_trans_funs ) walk |> List.rev
     let getWalkFromSituationMatrix sm stateIdx =
       let situations_in_state = Array.get sm stateIdx
       match situations_in_state with
-          | StateSpacePolicy.Not_reachable -> raise (invalidArg "stateIdx" "Desired state is not reachable")
+          | StateSpacePolicy.NotReachable -> raise (invalidArg "stateIdx" "Desired state is not reachable")
           | StateSpacePolicy.Situations sitsSeq -> 
             Seq.map (fun (s:StateSpace.situation) -> s.currentWalk ) sitsSeq 
             (*match strategy with 
@@ -122,7 +122,7 @@ module Frontend =
             is_found_at_least_once := true;
             result := Seq.append (getWalkFromSituationMatrix situations_matrix stateIdx) !result
             if forceNoIdling then
-              Array.set situations_matrix stateIdx StateSpacePolicy.Not_reachable
+              Array.set situations_matrix stateIdx StateSpacePolicy.NotReachable
           )
           current_sits_matrix := situations_matrix
           steps_left := !steps_left - num_of_steps_used

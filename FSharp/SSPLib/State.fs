@@ -1,11 +1,11 @@
 namespace SSPLib
 
-type trans_fun_raw = {permutationWithTimeShift:(int*int) list; reactLabel:string; fromIdx:int; toIdx:int; transitionIdx:int}
-type dest_state = {state_idx:int;patts_found:string}
+type transFunRaw = {permutationWithTimeShift:(int*int) list; reactLabel:string; fromIdx:int; toIdx:int; transitionIdx:int}
+type destState = {stateIdx:int;patternsFound:string}
 module State =
     type sat = (int*int) array
-    type transFun = { func:sat->sat; transition_idx:int}
-    type transFunConf = {perm_config: Map<int,(int*int)>;conditional_agents:int array}
+    type transFun = { func:sat->sat; transitionIdx:int}
+    type private transFunConf = {permConfig: Map<int,(int*int)>;conditionalAgents:int array}
     let private _numberOfAgents = ref (-1)
     let private _numberOfStates = ref (-1)
     let private _areValuesLocked = ref false
@@ -24,11 +24,11 @@ module State =
         let result,_ = Array.fold (fun (synchro_flag,ref_time) (_,state) -> synchro_flag && ref_time = state, ref_time ) (true,reference_time) agents_to_check
         result
     let private _trans_fun_template config state = 
-        if _are_conditional_agents_synchronized config.conditional_agents state then
+        if _are_conditional_agents_synchronized config.conditionalAgents state then
             Array.init 
                 !_numberOfAgents 
                 (fun i -> 
-                    let input_rel_agent_id, time_shift = Map.find (i+1) config.perm_config
+                    let input_rel_agent_id, time_shift = Map.find (i+1) config.permConfig
                     _element_trans_fun input_rel_agent_id time_shift state 
                 )
         else
@@ -43,16 +43,16 @@ module State =
                         ) 
                         (Map.empty,0)
                         raw_trans.permutationWithTimeShift
-        {perm_config = perm;conditional_agents = Array.ofList !cond_agents_list}
+        {permConfig = perm;conditionalAgents = Array.ofList !cond_agents_list}
     let parseTransFun trans_raw =
         let config = _make_config trans_raw
-        {func=_trans_fun_template config;transition_idx=trans_raw.transitionIdx}
+        {func=_trans_fun_template config;transitionIdx=trans_raw.transitionIdx}
     let numberOfStates () =
         !_numberOfStates
     let numberOfAgents () =
         !_numberOfAgents
     let isNegligible s =
         Array.forall ( fun (_,state) -> state = -1 ) s
-    let toStirng state =
+    let toString state =
         let res = Array.map (fun (ai,state) -> "("+ai.ToString()+","+state.ToString()+")") state |> Array.toList |> String.concat ";"
         "{"+res+"}"

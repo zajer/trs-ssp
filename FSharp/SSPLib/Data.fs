@@ -70,8 +70,8 @@ module Data =
                                                           //let idx_str,string_list_str = _string_list_2_2tuple sl in
                                                           fun r -> 
                                                             {
-                                                                state_idx = r.Item 0 |> int;
-                                                                patts_found = r.Item 1
+                                                                stateIdx = r.Item 0 |> int;
+                                                                patternsFound = r.Item 1
                                                             }
                                                       )                                                
         dest_states

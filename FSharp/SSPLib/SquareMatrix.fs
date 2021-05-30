@@ -18,8 +18,8 @@ module SquareMatrix =
             {elements=elts;length=number_of_rows}
         else
             raise (invalidArg "elts" "Provided elements do not create square matrix")
-    let init init_fun length= 
-        let elts = Array.init length (fun row -> Array.init length (fun column -> init_fun row column ))
+    let init initFun length= 
+        let elts = Array.init length (fun row -> Array.init length (fun column -> initFun row column ))
         {elements=elts;length=length}
     let initSingleValue initElem length =
         let elts = Array.init length (fun _ -> Array.init length (fun _ -> initElem ))

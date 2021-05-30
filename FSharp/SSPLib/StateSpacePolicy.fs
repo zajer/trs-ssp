@@ -1,16 +1,16 @@
 namespace SSPLib
 
 module StateSpacePolicy =
-    type situationsInState = Situations of seq<StateSpace.situation> | Not_reachable
-    type coursesBetweenSituations = Courses of seq<State.transFun> | No_transitions
+    type situationsInState = Situations of seq<StateSpace.situation> | NotReachable
+    type coursesBetweenSituations = Courses of seq<State.transFun> | NoTransitions
     type systemSituationMatrix = situationsInState array
     type systemTransformationMatrix = coursesBetweenSituations SquareMatrix.matrix
 
     let convolute situations courses = 
         match situations,courses with
-        | Not_reachable,No_transitions -> Not_reachable
-        | Situations _, No_transitions -> Not_reachable
-        | Not_reachable, Courses _ -> Not_reachable
+        | NotReachable,NoTransitions -> NotReachable
+        | Situations _, NoTransitions -> NotReachable
+        | NotReachable, Courses _ -> NotReachable
         | Situations sits, Courses trans_funs -> 
             let result = Seq.collect
                             (
@@ -24,13 +24,13 @@ module StateSpacePolicy =
             Situations result
     let private _mergeSituationsInState sits1 sits2 = 
         match sits1, sits2 with
-        | Not_reachable, Not_reachable -> Not_reachable
-        | Situations s1, Not_reachable -> Situations s1
-        | Not_reachable, Situations s2 -> Situations s2
+        | NotReachable, NotReachable -> NotReachable
+        | Situations s1, NotReachable -> Situations s1
+        | NotReachable, Situations s2 -> Situations s2
         | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
     let private _limitSituationsInState transformer maxItems allSituationsInState =
         match allSituationsInState with
-        | Not_reachable -> Not_reachable
+        | NotReachable -> NotReachable
         | Situations sits ->
                             (*let generatorInitState = filter sits
                             Situations (Seq.unfold 
@@ -64,7 +64,7 @@ module StateSpacePolicy =
                             situationsMX
                     let new_situations_in_state = Array.fold
                                                     (fun res_situation sits_to_merge -> _mergeSituationsInState res_situation sits_to_merge ) 
-                                                    Not_reachable 
+                                                    NotReachable 
                                                     newSituationsInState_toFlatten
                     if isLimited then
                         new_situations_in_state |> _limitSituationsInState filterFun limitSize
@@ -82,6 +82,6 @@ module StateSpacePolicy =
         let res =  Seq.singleton sit
         (Situations res)
     let initSituationMatrix sis initStateIdx numOfStates =
-        let result = Array.create numOfStates Not_reachable
+        let result = Array.create numOfStates NotReachable
         Array.set result initStateIdx sis;
         result

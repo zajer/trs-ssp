@@ -27,7 +27,7 @@ let printSATs numOfAgents (resultWalks:seq<SSPLib.StateSpace.walk>) =
                         resultWalks
     Seq.iteri (fun i walkAsSATs -> 
                             let walkInProperOrder = List.rev walkAsSATs
-                            let walkAsString = List.map (fun sat -> SSPLib.State.toStirng sat) walkInProperOrder |> String.concat "->\n"
+                            let walkAsString = List.map (fun sat -> SSPLib.State.toString sat) walkInProperOrder |> String.concat "->\n"
                             printfn "Result %d: Consecutive SATs:\n%s" (numOfResults-i) walkAsString
             )
             walksAsSATs
