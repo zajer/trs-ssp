@@ -11,8 +11,9 @@ module State =
     let private _areValuesLocked = ref false
     let setValues lockValues numOfAgents numOfStates =
         if not !_areValuesLocked then
-            _numberOfAgents := numOfAgents;
+            _numberOfAgents := numOfAgents
             _numberOfStates := numOfStates
+            _areValuesLocked := lockValues
         else
             raise (invalidOp "Attempt of changing locked state's values")
     let private _element_trans_fun input_rel_agent_id time_shift input_state =
