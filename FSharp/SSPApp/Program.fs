@@ -33,12 +33,23 @@ let printSATs numOfAgents (resultWalks:seq<SSPLib.StateSpace.walk>) =
             walksAsSATs
 let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult= 
     let situationsMatrix,_,is_found = 
-        match conf.computationStrategy with
-        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForSituationInState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
-        | SSPLib.Frontend.ComputeLimited limit -> SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps limit
+        match conf.resultStrategy with
+        | All -> SSPLib.Frontend.searchForSituationInState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
+        | First -> 
+                    let transformer = fun x -> x
+                    SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps transformer 1
+        (*| Bests (filterFun,n) ->
+                                let filter = Seq.filter filterFun 
+                                SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps filter n*)
+        | Bests (metric,n) ->
+                                let filter2 = Seq.sortByDescending metric
+                                let filter seq = 
+                                            let sorted = Seq.sortByDescending metric seq
+                                            Seq.truncate n sorted
+                                SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps filter n
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
-        let resultWalks = SSPLib.Frontend.getWalkFromSituationMatrix conf.resultStrategy situationsMatrix opd.destinationStateIndex
+        let resultWalks = SSPLib.Frontend.getWalkFromSituationMatrix situationsMatrix opd.destinationStateIndex
         printfn "Found %d unique walks" (Seq.length resultWalks)
         if conf.printSATs then
             printSATs conf.numOfAgents resultWalks
@@ -48,9 +59,42 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
         printfn "%s" ("Walk to the desired state has not been found!")
 let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     let resultWalks,is_found = 
-        match conf.computationStrategy with
-        | SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy conf.forceNoIdling
-        | SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy limit conf.forceNoIdling
+        match conf.resultStrategy with
+        | All -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.forceNoIdling
+        | First -> 
+                    let filter = fun x -> x
+                    SSPLib.Frontend.searchForWalksLeadingToStateLimited 
+                        opd.initialSituationMatrix 
+                        opd.transitionMatrix 
+                        opd.destinationStateIndex 
+                        conf.numOfSteps 
+                        filter 
+                        1 
+                        conf.forceNoIdling
+        (*| Bests (filterFun,n) ->
+                                let filter = Seq.filter filterFun
+                                SSPLib.Frontend.searchForWalksLeadingToStateLimited 
+                                    opd.initialSituationMatrix 
+                                    opd.transitionMatrix 
+                                    opd.destinationStateIndex 
+                                    conf.numOfSteps 
+                                    filter
+                                    n
+                                    conf.forceNoIdling;*)
+        | Bests (metric,n) -> 
+                                        let filter seq = 
+                                            let sorted = Seq.sortByDescending metric seq
+                                            Seq.truncate n sorted
+                                        SSPLib.Frontend.searchForWalksLeadingToStateLimited 
+                                            opd.initialSituationMatrix 
+                                            opd.transitionMatrix 
+                                            opd.destinationStateIndex 
+                                            conf.numOfSteps 
+                                            filter 
+                                            n
+                                            conf.forceNoIdling
+        //| SSPLib.Frontend.ComputeAll -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy conf.forceNoIdling
+        //| SSPLib.Frontend.ComputeLimited limit-> SSPLib.Frontend.searchForWalksLeadingToStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.resultStrategy limit conf.forceNoIdling
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
         printfn "Found %d unique walks" (Seq.length resultWalks)

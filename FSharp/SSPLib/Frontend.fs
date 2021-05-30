@@ -1,9 +1,7 @@
 namespace SSPLib
 
 module Frontend =
-    type computationStrategy = ComputeAll | ComputeLimited of int
     type destinationStrategy = FirstFound | Random
-    type resultStrategy = All | First | Bests of Filter.filter | BestsAvailable of (Filter.metric*int)
     let chooseDestinationStateIdx strategy destinationStates = 
       match strategy with 
       | FirstFound -> (Seq.head destinationStates).state_idx
@@ -57,9 +55,10 @@ module Frontend =
       | StateSpacePolicy.Situations s_seq -> not (Seq.isEmpty s_seq)
     let private _fix_situations_in_state_to_not_reachable sits_matrix state_idx =
       Array.set sits_matrix state_idx StateSpacePolicy.Not_reachable
-    let private _generic_search_for_situation_in_state 
+    let private _searchForSituationInState 
       isLimited
-      limitSize 
+      filterFun
+      resultMaxSize
       sits_matrix 
       trans_matrix 
       state_idx 
@@ -72,64 +71,65 @@ module Frontend =
           if not isLimited then
             result := StateSpacePolicy.multiply !result trans_matrix
           else
-            result := StateSpacePolicy.multiplyLimited !result trans_matrix limitSize
+            result := StateSpacePolicy.multiplyLimited !result trans_matrix filterFun resultMaxSize
           is_reached := isStateReached !result state_idx;
           if not !is_reached then
             _fix_situations_in_state_to_not_reachable !result state_idx;
           iter := !iter + 1
         done;
         !result,!iter,!is_reached
-    let searchForSituationInState sits_matrix trans_matrix state_idx max_num_of_steps = 
-      _generic_search_for_situation_in_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps
-    let searchForSituationInStateLimited sits_matrix trans_matrix state_idx max_num_of_steps limit =
-      _generic_search_for_situation_in_state true limit sits_matrix trans_matrix state_idx max_num_of_steps
+    let searchForSituationInState situationsMatrix transMatrix destinationStateIdx maxNumOfSteps = 
+      _searchForSituationInState false (fun x->x) -1 situationsMatrix transMatrix destinationStateIdx maxNumOfSteps
+    let searchForSituationInStateLimited situationsMatrix transMatrix destinationStateIdx maxNumOfSteps filter maxResultSize =
+      _searchForSituationInState true filter maxResultSize situationsMatrix transMatrix destinationStateIdx maxNumOfSteps
     let exportWalk (walk:StateSpace.walk) all_raw_trans_funs =
       let hashed_trans_funs = Seq.fold (fun htf tf -> Map.add tf.transitionIdx tf htf ) Map.empty all_raw_trans_funs;
       List.map (fun (we:State.transFun) -> Map.find we.transition_idx hashed_trans_funs ) walk |> List.rev
-    let getWalkFromSituationMatrix strategy sm stateIdx =
+    let getWalkFromSituationMatrix sm stateIdx =
       let situations_in_state = Array.get sm stateIdx
       match situations_in_state with
-          | StateSpacePolicy.Not_reachable -> raise (invalidArg "state_idx" "Desired state is not reachable")
-          | StateSpacePolicy.Situations s_seq -> 
-            match strategy with 
+          | StateSpacePolicy.Not_reachable -> raise (invalidArg "stateIdx" "Desired state is not reachable")
+          | StateSpacePolicy.Situations sitsSeq -> 
+            Seq.map (fun (s:StateSpace.situation) -> s.currentWalk ) sitsSeq 
+            (*match strategy with 
             | First -> Seq.init 1 (fun _ -> (Seq.head s_seq).currentWalk)
             | All -> Seq.map (fun (s:StateSpace.situation) -> s.currentWalk ) s_seq 
             | Bests f -> Seq.filter f s_seq |> Seq.map (fun s -> s.currentWalk)
             | BestsAvailable (m,n) -> 
               let sorted = Seq.sortByDescending m s_seq
-              Seq.truncate n sorted |> Seq.map (fun s -> s.currentWalk)
-    let private _generic_search_for_walks_leading_to_state 
+              Seq.truncate n sorted |> Seq.map (fun s -> s.currentWalk)*)
+    let private _searchForWalksLeadingToState 
       isLimited
-      limit
-      sits_matrix 
-      trans_matrix 
-      state_idx 
-      max_num_of_steps 
-      strategy
+      filterFun
+      maxResultSize
+      sitsMatrix 
+      transMatrix 
+      stateIdx 
+      maxNumOfSteps 
       forceNoIdling = 
-        let steps_left = ref max_num_of_steps
-        let current_sits_matrix = ref sits_matrix
+        let steps_left = ref maxNumOfSteps
+        let current_sits_matrix = ref sitsMatrix
         let result = ref Seq.empty
         let is_found_at_least_once = ref false
         while !steps_left > 0 do
           let situations_matrix,num_of_steps_used,is_found = 
             if not isLimited then
-              searchForSituationInState !current_sits_matrix trans_matrix state_idx !steps_left
+              searchForSituationInState !current_sits_matrix transMatrix stateIdx !steps_left
             else
-              searchForSituationInStateLimited !current_sits_matrix trans_matrix state_idx !steps_left limit
+              searchForSituationInStateLimited !current_sits_matrix transMatrix stateIdx !steps_left filterFun maxResultSize
           if is_found then (
             printfn "Found a walk to a destination state in %d step(s)" num_of_steps_used
             is_found_at_least_once := true;
-            result := Seq.append (getWalkFromSituationMatrix strategy situations_matrix state_idx) !result
+            result := Seq.append (getWalkFromSituationMatrix situations_matrix stateIdx) !result
             if forceNoIdling then
-              Array.set situations_matrix state_idx StateSpacePolicy.Not_reachable
+              Array.set situations_matrix stateIdx StateSpacePolicy.Not_reachable
           )
           current_sits_matrix := situations_matrix
           steps_left := !steps_left - num_of_steps_used
           printfn "Remaining steps left:%d" !steps_left
         done;
         !result,!is_found_at_least_once
-    let searchForWalksLeadingToState sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling = 
-      _generic_search_for_walks_leading_to_state false -1 sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling
-    let searchForWalksLeadingToStateLimited sits_matrix trans_matrix state_idx max_num_of_steps strategy limit noIdling =
-      _generic_search_for_walks_leading_to_state true limit sits_matrix trans_matrix state_idx max_num_of_steps strategy noIdling
+    let searchForWalksLeadingToState sitsMatrix transMatrix destStateIdx maxNumOfSteps noIdling = 
+      _searchForWalksLeadingToState false (fun x->x) -1 sitsMatrix transMatrix destStateIdx maxNumOfSteps noIdling
+    let searchForWalksLeadingToStateLimited sitsMatrix transMatrix destStateIdx maxNumOfSteps filter maxResultSize noIdling =
+      _searchForWalksLeadingToState true filter maxResultSize sitsMatrix transMatrix destStateIdx maxNumOfSteps noIdling

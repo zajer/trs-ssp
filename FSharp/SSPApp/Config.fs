@@ -9,6 +9,7 @@ module Config =
             let msg = "SSPApp <mode: exmp | gen> <config file>"
             printfn "%s" msg
     type taskType = FirstFound | SearchUntil | FirstFoundCount | SearchUntilCount
+    type resultStrategy = All | First (*| Bests of (Filter.filter*int) *) | Bests of (Filter.metric*int)
     type config = {
             numOfAgents:int;
             numOfStates:int;
@@ -17,8 +18,7 @@ module Config =
             numOfSteps:int;
             outputFilePrefix:string;
             task: taskType;
-            resultStrategy: Frontend.resultStrategy;
-            computationStrategy: Frontend.computationStrategy;
+            resultStrategy: resultStrategy;
             destinationStrategy: Frontend.destinationStrategy;
             forceNoIdling: bool
             printSATs:bool
@@ -38,45 +38,43 @@ module Config =
       "numberOfSteps": 40,
       "outputFilePrefix": "result",
       "task": "search until",
-      "resultStrategy": "best:2:2.0",
-      "computationStrategy": "limit:3",
+      "resultStrategy": "best:2",
       "destinationStrategy": "first found",
       "forceNoIdling":true,
       "printSATs":true
     }"""
     type ConfigProvider = JsonProvider<sampleConfigJson>
     let private _parseResultStrategy resultStrategy = 
-        let (|FirstMatched|AllMatched|BestMatched|BestAvailableMatched|) input =
+        let (|FirstMatched|AllMatched|BestMatched|) input =
             let fr = Regex("first")
             let ar = Regex("all")
-            let br = Regex("best:[0-9]+:[0-9]+\\.[0-9]+")
-            let bar = Regex("best available:[0-9]+")
+            //let br = Regex("best:[0-9]+:[0-9]+\\.[0-9]+")
+            let br = Regex("best:[0-9]+")
             if fr.IsMatch(input) then
                 FirstMatched
             else if ar.IsMatch(input) then
                 AllMatched
-            else if br.IsMatch(input) then
+            (*else if br.IsMatch(input) then
                 let numOfResults = Regex("[0-9]+").Match(input)
                 let minEngagement = Regex("[0-9]+\\.[0-9]+").Match(input)
-                BestMatched (numOfResults.Value,minEngagement.Value)
-            else if bar.IsMatch(input) then
+                BestMatched (numOfResults.Value,minEngagement.Value)*)
+            else if br.IsMatch(input) then
                 let numOfResults = Regex("[0-9]+").Match(input)
-                BestAvailableMatched numOfResults.Value
+                BestMatched numOfResults.Value
             else
                 raise ( invalidArg "resultStrategy" ("Result resolve strategy "+input+" is undefined"))
         match resultStrategy with
-        | FirstMatched -> Frontend.First
-        | AllMatched -> Frontend.All
-        | BestMatched (limitOfResultsStr,minEngagementStr) -> 
+        | FirstMatched -> First
+        | AllMatched -> All
+        (*| BestMatched (limitOfResultsStr,minEngagementStr) -> 
             let limitOfResults = int limitOfResultsStr
             let minEngagement = double minEngagementStr
-            let currentNumOfResults = ref 0
-            let filter = Filter.filterLimitedNumOfMostEngaging limitOfResults currentNumOfResults minEngagement
-            Frontend.Bests filter
-        | BestAvailableMatched limitOfResultsStr ->
+            //let currentNumOfResults = ref 0
+            let filter = Filter.filterMostEngaging minEngagement
+            Bests (filter,limitOfResults)*)
+        | BestMatched limitOfResultsStr ->
             let limitOfResults = int limitOfResultsStr
-            Frontend.BestsAvailable (Filter.calcMetric,limitOfResults)
-
+            Bests (Filter.calcMetric,limitOfResults)
     let private _parseTask task = 
         match task with
             | "ff" | "first found" -> FirstFound
@@ -84,20 +82,6 @@ module Config =
             | "ffc" | "first found count" -> FirstFoundCount
             | "suc" | "search until count" -> SearchUntilCount
             | s -> raise ( invalidArg "task" ("Task type \""+s+"\" is undefined"))
-    let private _parseComputationStrategy strategy =
-        let (|AllMatched|LimitedMatched|) input =
-            let ar = Regex("all")
-            let lr = Regex("limited:[0-9]+|limit:[0-9]+")
-            if ar.IsMatch(input) then
-                AllMatched
-            else if lr.IsMatch(input) then
-                let limit = Regex("[0-9]+").Match(input)
-                LimitedMatched limit.Value
-            else
-                raise ( invalidArg "computationStrategy" ("Computation strategy \""+input+"\" is undefined"))
-        match strategy with
-            | AllMatched -> Frontend.ComputeAll
-            | LimitedMatched limitStr -> Frontend.ComputeLimited (int limitStr)
     let private _parseDestinationStrategy strategy =
         match strategy with
             | "ff" | "first found" -> Frontend.FirstFound
@@ -114,7 +98,6 @@ module Config =
             outputFilePrefix=config.OutputFilePrefix;
             resultStrategy=_parseResultStrategy config.ResultStrategy;
             task= _parseTask config.Task;
-            computationStrategy= _parseComputationStrategy config.ComputationStrategy;
             destinationStrategy=_parseDestinationStrategy config.DestinationStrategy;
             forceNoIdling=config.ForceNoIdling;
             printSATs=config.PrintSaTs

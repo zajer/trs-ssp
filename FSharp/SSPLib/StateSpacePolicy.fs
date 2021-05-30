@@ -22,52 +22,62 @@ module StateSpacePolicy =
                             )
                             sits
             Situations result
-    let private _mergeSituationsAtState sits1 sits2 = 
+    let private _mergeSituationsInState sits1 sits2 = 
         match sits1, sits2 with
         | Not_reachable, Not_reachable -> Not_reachable
         | Situations s1, Not_reachable -> Situations s1
         | Not_reachable, Situations s2 -> Situations s2
         | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
-    type multiplicationConfig = 
-        {   
-            limit:bool;
-            chunkSize:int;
-        }
-    let private _limitSituationsAt_state chunkSize allSituationsAtState =
-        match allSituationsAtState with
+    let private _limitSituationsInState transformer maxItems allSituationsInState =
+        match allSituationsInState with
         | Not_reachable -> Not_reachable
-        | Situations sits -> Situations (Seq.truncate chunkSize sits)
-    let private _multiply config situationsMX transMX =
+        | Situations sits ->
+                            (*let generatorInitState = filter sits
+                            Situations (Seq.unfold 
+                                                (fun (subseq,n) -> 
+                                                    if not (Seq.isEmpty subseq) && n<maxItems then
+                                                        let toReturn = Seq.head subseq
+                                                        let tail = Seq.tail subseq
+                                                        Some (toReturn,(tail,n+1))
+                                                    else
+                                                        None
+                                                )
+                                                (generatorInitState,0)
+                                        )
+                            *)
+                            let transformedSits = transformer sits
+                            Situations (Seq.truncate maxItems transformedSits)
+    let private _multiply isLimited filterFun limitSize situationsMX transMX =
         Array.Parallel.mapi 
             (
-                fun to_state_id _ ->
-                    let column_of_functions_to_state = SquareMatrix.column transMX to_state_id
-                    let new_situations_in_state_to_flatten =
+                fun toState_id _ ->
+                    let column_of_functions_to_state = SquareMatrix.column transMX toState_id
+                    let newSituationsInState_toFlatten =
                         Array.mapi
                             (
-                                fun from_state_id situations_in_state ->
-                                    let transitions_from_state_id = (Array.get column_of_functions_to_state from_state_id)
+                                fun fromState_id situationsInState ->
+                                    let transitionsFromState_id = (Array.get column_of_functions_to_state fromState_id)
                                     convolute
-                                        situations_in_state
-                                        transitions_from_state_id
+                                        situationsInState
+                                        transitionsFromState_id
                             )
                             situationsMX
                     let new_situations_in_state = Array.fold
-                                                    (fun res_situation sits_to_merge -> _mergeSituationsAtState res_situation sits_to_merge ) 
+                                                    (fun res_situation sits_to_merge -> _mergeSituationsInState res_situation sits_to_merge ) 
                                                     Not_reachable 
-                                                    new_situations_in_state_to_flatten
-                    if config.limit then
-                        new_situations_in_state |> _limitSituationsAt_state config.chunkSize
+                                                    newSituationsInState_toFlatten
+                    if isLimited then
+                        new_situations_in_state |> _limitSituationsInState filterFun limitSize
                     else
                         new_situations_in_state
             )
             (Array.create transMX.length [])
     let multiply (situationsMX:systemSituationMatrix) transMX =
-        let config = {limit=false;chunkSize=(-1)}
-        _multiply config situationsMX transMX 
-    let multiplyLimited (situationsMX:systemSituationMatrix) transMX maxResSize = 
-        let config = {limit=true;chunkSize=maxResSize}
-        _multiply config situationsMX transMX
+        //let config = {limit=false;filter=(fun x -> x)}
+        _multiply false (fun x -> x) -1 situationsMX transMX 
+    let multiplyLimited (situationsMX:systemSituationMatrix) transMX filterFun resultSize = 
+        //let config = {limit=true;filter=filterFun}
+        _multiply true filterFun resultSize situationsMX transMX
     let initSituationInState (sit:StateSpace.situation) =
         let res =  Seq.singleton sit
         (Situations res)

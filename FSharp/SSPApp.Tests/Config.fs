@@ -16,26 +16,25 @@ type TestClass () =
         Assert.AreEqual(40,config.numOfSteps)
         Assert.AreEqual("result",config.outputFilePrefix)
         Assert.AreEqual(SSPApp.Config.SearchUntil,config.task)
-        let resultsToFilter = Seq.ofList [
+        (*let resultsToFilter = Seq.ofList [
                                             [|(1,0);(2,2);(3,0)|] |> SSPLib.StateSpace.initSituation //1
                                             [|(1,1);(2,1);(3,1)|] |> SSPLib.StateSpace.initSituation ; //3
                                             [|(1,4);(2,2);(3,0)|] |> SSPLib.StateSpace.initSituation; //1.5
                                             [|(1,2);(2,2);(3,0)|] |> SSPLib.StateSpace.initSituation ; //2
                                             [|(1,2);(2,40);(3,40)|] |> SSPLib.StateSpace.initSituation; //2.05
-                                        ]
+                                     ]
         let expectedFilter = SSPLib.Filter.filterLimitedNumOfMostEngaging 2 (ref 0) 2.01
-        let expectedResultsFiltered = Seq.filter expectedFilter resultsToFilter
+        let expectedResultsFiltered = Seq.filter expectedFilter resultsToFilter*)
         
         let isMatchedCorrectly = ref true
-        let filter = match config.resultStrategy with
-                        | SSPLib.Frontend.Bests f -> f
-                        | _ -> isMatchedCorrectly := false; (fun _ -> false)
+        let _,n = match config.resultStrategy with
+                        | SSPApp.Config.Bests (m,n) -> m,n
+                        | _ -> isMatchedCorrectly := false; (fun _ -> 0.0),-1
         if not !isMatchedCorrectly then
             Assert.Fail "Output type should be equal to SSPLib.Frontend.Bests"
-        let actualResultsFiltered = Seq.filter filter resultsToFilter
-        
-        Assert.AreEqual(expectedResultsFiltered |> List.ofSeq, actualResultsFiltered |> List.ofSeq)
-        Assert.AreEqual(SSPLib.Frontend.ComputeLimited 3,config.computationStrategy)
+        //let actualResultsFiltered = Seq.filter metric resultsToFilter
+        Assert.AreEqual(2,n)
+        //Assert.AreEqual(expectedResultsFiltered |> List.ofSeq, actualResultsFiltered |> List.ofSeq)
         Assert.AreEqual(SSPLib.Frontend.FirstFound,config.destinationStrategy)
     [<TestMethod>]
     member this.ParseConfigFromJsonTest2 () =
@@ -51,12 +50,11 @@ type TestClass () =
 
         let isMatchedCorrectly = ref true
         let filter = match config.resultStrategy with
-                        | SSPLib.Frontend.All -> ()
+                        | SSPApp.Config.All -> ()
                         | _ -> isMatchedCorrectly := false
         if not !isMatchedCorrectly then
             Assert.Fail "Output type should be equal to SSPLib.Frontend.All"
         
-        Assert.AreEqual(SSPLib.Frontend.ComputeAll,config.computationStrategy)
         Assert.AreEqual(SSPLib.Frontend.FirstFound,config.destinationStrategy)
     [<TestMethod>]
     member this.ParseConfigFromJsonTest3 () =
@@ -72,10 +70,9 @@ type TestClass () =
 
         let isMatchedCorrectly = ref true
         let filter = match config.resultStrategy with
-                        | SSPLib.Frontend.First -> ()
+                        | SSPApp.Config.First -> ()
                         | _ -> isMatchedCorrectly := false
         if not !isMatchedCorrectly then
             Assert.Fail "Output type should be equal to SSPLib.Frontend.First"
         
-        Assert.AreEqual(SSPLib.Frontend.ComputeLimited 777,config.computationStrategy)
         Assert.AreEqual(SSPLib.Frontend.Random,config.destinationStrategy)
