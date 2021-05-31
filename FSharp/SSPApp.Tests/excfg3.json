@@ -5,7 +5,7 @@
   "destinationStatesFile": "x.csv",
   "numberOfSteps": 321,
   "outputFilePrefix": "r3",
-  "resultStrategy": "first",
+  "resultStrategy": "first:3",
   "task": "ff",
   "destinationStrategy": "random",
   "forceNoIdling": false,

@@ -35,9 +35,9 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
     let situationsMatrix,_,is_found = 
         match conf.resultStrategy with
         | All -> SSPLib.Frontend.searchForSituationInState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps
-        | First -> 
+        | First n -> 
                     let transformer = fun x -> x
-                    SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps transformer 1
+                    SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps transformer n
         (*| Bests (filterFun,n) ->
                                 let filter = Seq.filter filterFun 
                                 SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps filter n*)
@@ -61,7 +61,7 @@ let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
     let resultWalks,is_found = 
         match conf.resultStrategy with
         | All -> SSPLib.Frontend.searchForWalksLeadingToState opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps conf.forceNoIdling
-        | First -> 
+        | First n-> 
                     let filter = fun x -> x
                     SSPLib.Frontend.searchForWalksLeadingToStateLimited 
                         opd.initialSituationMatrix 
@@ -69,7 +69,7 @@ let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
                         opd.destinationStateIndex 
                         conf.numOfSteps 
                         filter 
-                        1 
+                        n
                         conf.forceNoIdling
         (*| Bests (filterFun,n) ->
                                 let filter = Seq.filter filterFun

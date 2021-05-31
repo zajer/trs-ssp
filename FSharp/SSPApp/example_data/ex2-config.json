@@ -6,7 +6,7 @@
   "numberOfSteps": 10,
   "outputFilePrefix": "ex2",
   "task": "first found count",
-  "resultStrategy": "best:1",
+  "resultStrategy": "first:1",
   "computationStrategy": "all",
   "destinationStrategy": "first found",
   "forceNoIdling": false,

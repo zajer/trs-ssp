@@ -9,7 +9,7 @@ module Config =
             let msg = "SSPApp <mode: exmp | gen> <config file>"
             printfn "%s" msg
     type taskType = FirstFound | SearchUntil | FirstFoundCount | SearchUntilCount
-    type resultStrategy = All | First (*| Bests of (Filter.filter*int) *) | Bests of (Filter.metric*int)
+    type resultStrategy = All | First of int (*| Bests of (Filter.filter*int) *) | Bests of (Filter.metric*int)
     type config = {
             numOfAgents:int;
             numOfStates:int;
@@ -46,12 +46,13 @@ module Config =
     type ConfigProvider = JsonProvider<SAMPLE_CONFIG_JSON>
     let private _parseResultStrategy resultStrategy = 
         let (|FirstMatched|AllMatched|BestMatched|) input =
-            let fr = Regex("first")
+            let fr = Regex("first:[0-9]+")
             let ar = Regex("all")
             //let br = Regex("best:[0-9]+:[0-9]+\\.[0-9]+")
             let br = Regex("best:[0-9]+")
             if fr.IsMatch(input) then
-                FirstMatched
+                let numOfResults = Regex("[0-9]+").Match(input)
+                FirstMatched numOfResults.Value
             else if ar.IsMatch(input) then
                 AllMatched
             (*else if br.IsMatch(input) then
@@ -64,7 +65,9 @@ module Config =
             else
                 raise ( invalidArg "resultStrategy" ("Result resolve strategy "+input+" is undefined"))
         match resultStrategy with
-        | FirstMatched -> First
+        | FirstMatched limitOfResultsStr -> 
+            let limitOfResults = int limitOfResultsStr
+            First limitOfResults
         | AllMatched -> All
         (*| BestMatched (limitOfResultsStr,minEngagementStr) -> 
             let limitOfResults = int limitOfResultsStr

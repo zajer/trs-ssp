@@ -69,10 +69,10 @@ type TestClass () =
         Assert.AreEqual(SSPApp.Config.FirstFound,config.task)
 
         let isMatchedCorrectly = ref true
-        let filter = match config.resultStrategy with
-                        | SSPApp.Config.First -> ()
-                        | _ -> isMatchedCorrectly := false
+        let n = match config.resultStrategy with
+                        | SSPApp.Config.First n -> n
+                        | _ -> isMatchedCorrectly := false; -1
         if not !isMatchedCorrectly then
             Assert.Fail "Output type should be equal to SSPLib.Frontend.First"
-        
+        Assert.AreEqual(3,n)
         Assert.AreEqual(SSPLib.Frontend.Random,config.destinationStrategy)
