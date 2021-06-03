@@ -21,6 +21,10 @@ type StateSpacePolicyTestClass () =
         _areWalksEqual expected.currentWalk actual.currentWalk
     let _areListOfSituationsEqual expected actual = 
         List.iter2 ( fun esis asis -> _areSituationsEqual esis asis) expected actual
+    let _extractSituations situationsInState = 
+        match situationsInState with 
+        | NotReachable -> []
+        | Situations s -> List.ofSeq s
     [<TestMethod>]
     member this.ConvoluteTest1 () =
         let sat = [|(1,0);(2,0)|]
@@ -149,4 +153,159 @@ type StateSpacePolicyTestClass () =
         if not isMatchedCorrectly then
             Assert.Fail ()
         Assert.AreEqual (0, List.length resultAsList)
+        ()
+    [<TestMethod>]
+    member this.MultiplyTest1 () =
+        let sat1 = [|(1,0);(2,0)|]
+        let stateTransFunc1 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,2);(2,1)] |> _mapToIndexFun) (Map.ofList [2,7;1,3]);
+            SSPLib.State.transitionIdx=3
+            }
+        let stateTransFunc2 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,1);(2,2)] |> _mapToIndexFun) (Map.ofList [1,4;2,5]);
+            SSPLib.State.transitionIdx=7
+            }
+        let situation1 = SSPLib.StateSpace.initSituation sat1
+        let situationInState = Situations (Seq.ofList [situation1])
+        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
+        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let sitMatrix = initSituationMatrix situationInState 0 3
+        let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
+        SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
+        SSPLib.SquareMatrix.update transMatrix 0 2 coursesBetweenStates0_2;
+        let result = multiply sitMatrix transMatrix
+        let sitsInState0 = Array.get result 0 |> _extractSituations
+        let sitsInState1 = Array.get result 1 |> _extractSituations
+        let sitsInState2 = Array.get result 2 |> _extractSituations
+        Assert.AreEqual (0, List.length sitsInState0)
+        Assert.AreEqual (1, List.length sitsInState1)
+        Assert.AreEqual (1, List.length sitsInState2)
+        _areListOfSituationsEqual
+            [ { SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];currentWalk=[stateTransFunc1] }]
+            sitsInState1
+        _areListOfSituationsEqual
+            [ { SSPLib.StateSpace.currentSAT=[|(1,4);(2,5)|];currentWalk=[stateTransFunc2] }]
+            sitsInState2
+        ()
+    [<TestMethod>]
+    member this.MultiplyTest2 () =
+        let sat1 = [|(1,0);(2,0)|]
+        let sat2 = [|(2,7);(1,5)|]
+        let stateTransFunc1 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,2);(2,1)] |> _mapToIndexFun) (Map.ofList [2,7;1,3]);
+            SSPLib.State.transitionIdx=3
+            }
+        let stateTransFunc2 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,1);(2,2)] |> _mapToIndexFun) (Map.ofList [1,4;2,5]);
+            SSPLib.State.transitionIdx=7
+            }
+        let situation1 = SSPLib.StateSpace.initSituation sat1
+        let situation2 = SSPLib.StateSpace.initSituation sat2
+        let situationInState = Situations (Seq.ofList [situation1;situation2])
+        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
+        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let sitMatrix = initSituationMatrix situationInState 0 3
+        let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
+        SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
+        SSPLib.SquareMatrix.update transMatrix 0 2 coursesBetweenStates0_2;
+        let result = multiply sitMatrix transMatrix
+        let sitsInState0 = Array.get result 0 |> _extractSituations
+        let sitsInState1 = Array.get result 1 |> _extractSituations
+        let sitsInState2 = Array.get result 2 |> _extractSituations
+        Assert.AreEqual (0, List.length sitsInState0)
+        Assert.AreEqual (2, List.length sitsInState1)
+        Assert.AreEqual (2, List.length sitsInState2)
+        _areListOfSituationsEqual
+            [ 
+                { SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];currentWalk=[stateTransFunc1] };
+                { SSPLib.StateSpace.currentSAT=[|(1,12);(2,10)|];currentWalk=[stateTransFunc1] };
+            ]
+            sitsInState1
+        _areListOfSituationsEqual
+            [ 
+                { SSPLib.StateSpace.currentSAT=[|(1,4);(2,5)|];currentWalk=[stateTransFunc2] };
+                { SSPLib.StateSpace.currentSAT=[|(2,11);(1,10)|];currentWalk=[stateTransFunc2] }
+            ]
+            sitsInState2
+        ()
+    [<TestMethod>]
+    member this.MultiplyTest3 () =
+        let sat1 = [|(1,0);(2,0)|]
+        let sat2 = [|(2,7);(1,5)|]
+        let stateTransFunc1 = {
+            SSPLib.State.func=
+                (fun ar -> 
+                    let a1,t1 = Array.item 0 ar
+                    let a2,t2 = Array.item 1 ar
+                    if t1 = t2 then
+                        [|(a2,t2+7);(a1,t1+3)|]
+                    else
+                        [|(-1,-1);(-1,-1)|]
+                );
+            SSPLib.State.transitionIdx=3
+            }
+        let stateTransFunc2 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,1);(2,2)] |> _mapToIndexFun) (Map.ofList [1,4;2,5]);
+            SSPLib.State.transitionIdx=7
+            }
+        let situation1 = SSPLib.StateSpace.initSituation sat1
+        let situation2 = SSPLib.StateSpace.initSituation sat2
+        let situationInState = Situations (Seq.ofList [situation1;situation2])
+        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
+        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let sitMatrix = initSituationMatrix situationInState 0 3
+        let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
+        SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
+        SSPLib.SquareMatrix.update transMatrix 0 2 coursesBetweenStates0_2;
+        let result = multiply sitMatrix transMatrix
+        let sitsInState0 = Array.get result 0 |> _extractSituations
+        let sitsInState1 = Array.get result 1 |> _extractSituations
+        let sitsInState2 = Array.get result 2 |> _extractSituations
+        Assert.AreEqual (0, List.length sitsInState0)
+        Assert.AreEqual (1, List.length sitsInState1)
+        Assert.AreEqual (2, List.length sitsInState2)
+        _areListOfSituationsEqual
+            [ 
+                { SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];currentWalk=[stateTransFunc1] };
+            ]
+            sitsInState1
+        _areListOfSituationsEqual
+            [ 
+                { SSPLib.StateSpace.currentSAT=[|(1,4);(2,5)|];currentWalk=[stateTransFunc2] };
+                { SSPLib.StateSpace.currentSAT=[|(2,11);(1,10)|];currentWalk=[stateTransFunc2] }
+            ]
+            sitsInState2
+        ()
+    [<TestMethod>]
+    member this.MultiplyTest4 () =
+        let sat1 = [|(1,0);(2,0)|]
+        let stateTransFunc1 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,2);(2,1)] |> _mapToIndexFun) (Map.ofList [2,7;1,3]);
+            SSPLib.State.transitionIdx=3
+            }
+        let stateTransFunc2 = {
+            SSPLib.State.func=_transFun (Map.ofList [(1,1);(2,2)] |> _mapToIndexFun) (Map.ofList [1,4;2,5]);
+            SSPLib.State.transitionIdx=7
+            }
+        let situation1 = SSPLib.StateSpace.initSituation sat1
+        let situationInState = Situations (Seq.ofList [situation1])
+        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
+        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let sitMatrix = initSituationMatrix situationInState 0 3
+        let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
+        SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
+        SSPLib.SquareMatrix.update transMatrix 1 2 coursesBetweenStates0_2;
+        let result = multiply sitMatrix transMatrix
+        let sitsInState0 = Array.get result 0 |> _extractSituations
+        let sitsInState1 = Array.get result 1 |> _extractSituations
+        let sitsInState2 = Array.get result 2 |> _extractSituations
+        Assert.AreEqual (0, List.length sitsInState0)
+        Assert.AreEqual (1, List.length sitsInState1)
+        Assert.AreEqual (0, List.length sitsInState2)
+        _areListOfSituationsEqual
+            [ 
+                { SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];currentWalk=[stateTransFunc1] };
+               
+            ]
+            sitsInState1
         ()
