@@ -1,5 +1,5 @@
 namespace SSPLib
-
+open FSharp.Collections.ParallelSeq
 module StateSpacePolicy =
     type situationsInState = Situations of StateSpace.situation list | NotReachable
     type coursesBetweenSituations = Courses of State.transFun list | NoTransitions
@@ -21,7 +21,10 @@ module StateSpacePolicy =
                                     new_situations
                             )
                             sits
-            Situations result
+            if List.isEmpty result then
+                NotReachable
+            else
+                Situations result
     let private _mergeSituationsInState sits1 sits2 = 
         match sits1, sits2 with
         | NotReachable, NotReachable -> NotReachable

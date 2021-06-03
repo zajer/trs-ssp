@@ -38,7 +38,7 @@ type StateSpacePolicyTestClass () =
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = {SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];SSPLib.StateSpace.currentWalk=[stateTransFunc]} 
         let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> List.ofSeq s,true
+                                                | Situations s -> s,true
                                                 | NotReachable -> [],false
         if not isMatchedCorrectly then
             Assert.Fail ()
@@ -65,7 +65,7 @@ type StateSpacePolicyTestClass () =
             {SSPLib.StateSpace.currentSAT=[|(1,19);(2,6)|];SSPLib.StateSpace.currentWalk=[stateTransFunc2]};
         ]
         let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> List.ofSeq s,true
+                                                | Situations s -> s,true
                                                 | NotReachable -> [],false
         if not isMatchedCorrectly then
             Assert.Fail ()
@@ -90,7 +90,7 @@ type StateSpacePolicyTestClass () =
             {SSPLib.StateSpace.currentSAT=[|(1,10);(2,4)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
         ]
         let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> List.ofSeq s,true
+                                                | Situations s -> s,true
                                                 | NotReachable -> [],false
         if not isMatchedCorrectly then
             Assert.Fail ()
@@ -147,12 +147,11 @@ type StateSpacePolicyTestClass () =
         let situationInState = initSituationInState sitution
         let coursesBetweenSituations = Courses [stateTransFunc]
         let result = convolute situationInState coursesBetweenSituations 
-        let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> List.ofSeq s,true
-                                                | NotReachable -> [],false
+        let _,isMatchedCorrectly = match result with
+                                                | Situations s -> s,false
+                                                | NotReachable -> [],true
         if not isMatchedCorrectly then
             Assert.Fail ()
-        Assert.AreEqual (0, List.length resultAsList)
         ()
     [<TestMethod>]
     member this.MultiplyTest1 () =
