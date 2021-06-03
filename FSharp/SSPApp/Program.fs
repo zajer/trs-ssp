@@ -44,8 +44,8 @@ let performFindFirstRoutine (conf:config) (opd:operationalData) saveResult=
         | Bests (metric,n) ->
                                 let filter2 = Seq.sortByDescending metric
                                 let filter seq = 
-                                            let sorted = Seq.sortByDescending metric seq
-                                            Seq.truncate n sorted
+                                            let sorted = List.sortByDescending metric seq
+                                            List.truncate n sorted
                                 SSPLib.Frontend.searchForSituationInStateLimited opd.initialSituationMatrix opd.transitionMatrix opd.destinationStateIndex conf.numOfSteps filter n
     if is_found then
         printfn "%s" ("Walk to the desired state with id="+ opd.destinationStateIndex.ToString()+" found")
@@ -83,8 +83,8 @@ let performSearchUntilRoutine (conf:config) (opd:operationalData) saveResult =
                                     conf.forceNoIdling;*)
         | Bests (metric,n) -> 
                                         let filter seq = 
-                                            let sorted = Seq.sortByDescending metric seq
-                                            Seq.truncate n sorted
+                                            let sorted = List.sortByDescending metric seq
+                                            List.truncate n sorted
                                         SSPLib.Frontend.searchForWalksLeadingToStateLimited 
                                             opd.initialSituationMatrix 
                                             opd.transitionMatrix 

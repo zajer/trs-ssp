@@ -1,8 +1,8 @@
 namespace SSPLib
 
 module StateSpacePolicy =
-    type situationsInState = Situations of seq<StateSpace.situation> | NotReachable
-    type coursesBetweenSituations = Courses of seq<State.transFun> | NoTransitions
+    type situationsInState = Situations of StateSpace.situation list | NotReachable
+    type coursesBetweenSituations = Courses of State.transFun list | NoTransitions
     type systemSituationMatrix = situationsInState array
     type systemTransformationMatrix = coursesBetweenSituations SquareMatrix.matrix
 
@@ -12,10 +12,10 @@ module StateSpacePolicy =
         | Situations _, NoTransitions -> NotReachable
         | NotReachable, Courses _ -> NotReachable
         | Situations sits, Courses trans_funs -> 
-            let result = Seq.collect
+            let result = List.collect
                             (
                                 fun sit -> 
-                                    let new_situations = Seq.choose 
+                                    let new_situations = List.choose 
                                                             (fun trans_fun -> StateSpace.advanceSituation sit trans_fun |> StateSpace.filteringFun) 
                                                             trans_funs
                                     new_situations
@@ -27,7 +27,7 @@ module StateSpacePolicy =
         | NotReachable, NotReachable -> NotReachable
         | Situations s1, NotReachable -> Situations s1
         | NotReachable, Situations s2 -> Situations s2
-        | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
+        | Situations s1, Situations s2 -> Situations (List.append s1 s2)
     let private _limitSituationsInState transformer maxItems allSituationsInState =
         match allSituationsInState with
         | NotReachable -> NotReachable
@@ -46,7 +46,7 @@ module StateSpacePolicy =
                                         )
                             *)
                             let transformedSits = transformer sits
-                            Situations (Seq.truncate maxItems transformedSits)
+                            Situations (List.truncate maxItems transformedSits)
     let private _multiply isLimited filterFun limitSize situationsMX transMX =
         Array.Parallel.mapi 
             (
@@ -79,7 +79,7 @@ module StateSpacePolicy =
         //let config = {limit=true;filter=filterFun}
         _multiply true filterFun resultSize situationsMX transMX
     let initSituationInState (sit:StateSpace.situation) =
-        let res =  Seq.singleton sit
+        let res =  [sit]
         (Situations res)
     let initSituationMatrix sis initStateIdx numOfStates =
         let result = Array.create numOfStates NotReachable

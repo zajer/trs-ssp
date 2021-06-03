@@ -34,7 +34,7 @@ type StateSpacePolicyTestClass () =
             }
         let sitution = SSPLib.StateSpace.initSituation sat
         let situationInState = initSituationInState sitution
-        let coursesBetweenSituations = Courses (Seq.singleton stateTransFunc)
+        let coursesBetweenSituations = Courses  [stateTransFunc]
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = {SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];SSPLib.StateSpace.currentWalk=[stateTransFunc]} 
         let resultAsList,isMatchedCorrectly = match result with
@@ -58,7 +58,7 @@ type StateSpacePolicyTestClass () =
             }
         let sitution = SSPLib.StateSpace.initSituation sat
         let situationInState = initSituationInState sitution
-        let coursesBetweenSituations = Courses (Seq.ofList [stateTransFunc1;stateTransFunc2])
+        let coursesBetweenSituations = Courses [stateTransFunc1;stateTransFunc2]
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = [
             {SSPLib.StateSpace.currentSAT=[|(2,8);(1,18)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
@@ -82,8 +82,8 @@ type StateSpacePolicyTestClass () =
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
         let situation2 = SSPLib.StateSpace.initSituation sat2
-        let situationInState = Situations (Seq.ofList [situation1;situation2])
-        let coursesBetweenSituations = Courses (Seq.ofList [stateTransFunc1])
+        let situationInState = Situations [situation1;situation2]
+        let coursesBetweenSituations = Courses [stateTransFunc1]
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = [
             {SSPLib.StateSpace.currentSAT=[|(2,10);(1,4)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
@@ -111,8 +111,8 @@ type StateSpacePolicyTestClass () =
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
         let situation2 = SSPLib.StateSpace.initSituation sat2
-        let situationInState = Situations (Seq.ofList [situation1;situation2])
-        let coursesBetweenSituations = Courses (Seq.ofList [stateTransFunc1;stateTransFunc2])
+        let situationInState = Situations [situation1;situation2]
+        let coursesBetweenSituations = Courses [stateTransFunc1;stateTransFunc2]
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = [
             {SSPLib.StateSpace.currentSAT=[|(2,10);(1,4)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
@@ -145,7 +145,7 @@ type StateSpacePolicyTestClass () =
             }
         let sitution = SSPLib.StateSpace.initSituation sat
         let situationInState = initSituationInState sitution
-        let coursesBetweenSituations = Courses (Seq.singleton stateTransFunc)
+        let coursesBetweenSituations = Courses [stateTransFunc]
         let result = convolute situationInState coursesBetweenSituations 
         let resultAsList,isMatchedCorrectly = match result with
                                                 | Situations s -> List.ofSeq s,true
@@ -166,9 +166,9 @@ type StateSpacePolicyTestClass () =
             SSPLib.State.transitionIdx=7
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
-        let situationInState = Situations (Seq.ofList [situation1])
-        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
-        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let situationInState = Situations [situation1]
+        let coursesBetweenStates0_1 = Courses [stateTransFunc1]
+        let coursesBetweenStates0_2 = Courses [stateTransFunc2]
         let sitMatrix = initSituationMatrix situationInState 0 3
         let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
         SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
@@ -201,9 +201,9 @@ type StateSpacePolicyTestClass () =
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
         let situation2 = SSPLib.StateSpace.initSituation sat2
-        let situationInState = Situations (Seq.ofList [situation1;situation2])
-        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
-        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let situationInState = Situations [situation1;situation2]
+        let coursesBetweenStates0_1 = Courses [stateTransFunc1]
+        let coursesBetweenStates0_2 = Courses [stateTransFunc2]
         let sitMatrix = initSituationMatrix situationInState 0 3
         let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
         SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
@@ -250,9 +250,9 @@ type StateSpacePolicyTestClass () =
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
         let situation2 = SSPLib.StateSpace.initSituation sat2
-        let situationInState = Situations (Seq.ofList [situation1;situation2])
-        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
-        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let situationInState = Situations [situation1;situation2]
+        let coursesBetweenStates0_1 = Courses [stateTransFunc1]
+        let coursesBetweenStates0_2 = Courses[stateTransFunc2]
         let sitMatrix = initSituationMatrix situationInState 0 3
         let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
         SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
@@ -288,9 +288,9 @@ type StateSpacePolicyTestClass () =
             SSPLib.State.transitionIdx=7
             }
         let situation1 = SSPLib.StateSpace.initSituation sat1
-        let situationInState = Situations (Seq.ofList [situation1])
-        let coursesBetweenStates0_1 = Courses (Seq.ofList [stateTransFunc1])
-        let coursesBetweenStates0_2 = Courses (Seq.ofList [stateTransFunc2])
+        let situationInState = Situations [situation1]
+        let coursesBetweenStates0_1 = Courses [stateTransFunc1]
+        let coursesBetweenStates0_2 = Courses [stateTransFunc2]
         let sitMatrix = initSituationMatrix situationInState 0 3
         let transMatrix = SSPLib.SquareMatrix.init (fun _ _ -> NoTransitions) 3;
         SSPLib.SquareMatrix.update transMatrix 0 1 coursesBetweenStates0_1;
