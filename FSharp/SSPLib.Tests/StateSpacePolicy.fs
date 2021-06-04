@@ -37,13 +37,9 @@ type StateSpacePolicyTestClass () =
         let coursesBetweenSituations = Courses  [stateTransFunc]
         let result = convolute situationInState coursesBetweenSituations 
         let expectedResult = {SSPLib.StateSpace.currentSAT=[|(2,7);(1,3)|];SSPLib.StateSpace.currentWalk=[stateTransFunc]} 
-        let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> s,true
-                                                | NotReachable -> [],false
-        if not isMatchedCorrectly then
-            Assert.Fail ()
-        Assert.AreEqual (1, List.length resultAsList)
-        _areSituationsEqual expectedResult (List.head resultAsList)
+        
+        Assert.AreEqual (1, List.length result)
+        _areSituationsEqual expectedResult (List.head result)
         ()
     [<TestMethod>]
     member this.ConvoluteTest2 () =
@@ -64,13 +60,9 @@ type StateSpacePolicyTestClass () =
             {SSPLib.StateSpace.currentSAT=[|(2,8);(1,18)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
             {SSPLib.StateSpace.currentSAT=[|(1,19);(2,6)|];SSPLib.StateSpace.currentWalk=[stateTransFunc2]};
         ]
-        let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> s,true
-                                                | NotReachable -> [],false
-        if not isMatchedCorrectly then
-            Assert.Fail ()
-        Assert.AreEqual (2, List.length resultAsList)
-        _areListOfSituationsEqual expectedResult resultAsList
+        
+        Assert.AreEqual (2, List.length result)
+        _areListOfSituationsEqual expectedResult result
         ()
     [<TestMethod>]
     member this.ConvoluteTest3 () =
@@ -89,13 +81,9 @@ type StateSpacePolicyTestClass () =
             {SSPLib.StateSpace.currentSAT=[|(2,10);(1,4)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
             {SSPLib.StateSpace.currentSAT=[|(1,10);(2,4)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
         ]
-        let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> s,true
-                                                | NotReachable -> [],false
-        if not isMatchedCorrectly then
-            Assert.Fail ()
-        Assert.AreEqual (2, List.length resultAsList)
-        _areListOfSituationsEqual expectedResult resultAsList
+        
+        Assert.AreEqual (2, List.length result)
+        _areListOfSituationsEqual expectedResult result
         ()
     [<TestMethod>]
     member this.ConvoluteTest4 () =
@@ -120,13 +108,9 @@ type StateSpacePolicyTestClass () =
             {SSPLib.StateSpace.currentSAT=[|(1,12);(2,10)|];SSPLib.StateSpace.currentWalk=[stateTransFunc1]};
             {SSPLib.StateSpace.currentSAT=[|(2,11);(1,10)|];SSPLib.StateSpace.currentWalk=[stateTransFunc2]};
         ]
-        let resultAsList,isMatchedCorrectly = match result with
-                                                | Situations s -> List.ofSeq s,true
-                                                | NotReachable -> [],false
-        if not isMatchedCorrectly then
-            Assert.Fail ()
-        Assert.AreEqual (4, List.length resultAsList)
-        _areListOfSituationsEqual expectedResult resultAsList
+        
+        Assert.AreEqual (4, List.length result)
+        _areListOfSituationsEqual expectedResult result
         ()
     [<TestMethod>]
     member this.ConvoluteTest5 () =
@@ -147,11 +131,7 @@ type StateSpacePolicyTestClass () =
         let situationInState = initSituationInState sitution
         let coursesBetweenSituations = Courses [stateTransFunc]
         let result = convolute situationInState coursesBetweenSituations 
-        let _,isMatchedCorrectly = match result with
-                                                | Situations s -> s,false
-                                                | NotReachable -> [],true
-        if not isMatchedCorrectly then
-            Assert.Fail ()
+        Assert.AreEqual(0,List.length result)
         ()
     [<TestMethod>]
     member this.MultiplyTest1 () =
