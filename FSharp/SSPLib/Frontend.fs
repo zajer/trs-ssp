@@ -39,7 +39,7 @@ module Frontend =
                   if List.isEmpty lotf then 
                     StateSpacePolicy.NoTransitions 
                   else 
-                    StateSpacePolicy.Courses (List.toSeq lotf) 
+                    StateSpacePolicy.Courses lotf
               ) 
               row 
         )

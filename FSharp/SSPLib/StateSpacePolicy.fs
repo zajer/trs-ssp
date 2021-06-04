@@ -1,75 +1,69 @@
 namespace SSPLib
 
 module StateSpacePolicy =
-    type situationsInState = Situations of seq<StateSpace.situation> | NotReachable
-    type coursesBetweenSituations = Courses of seq<State.transFun> | NoTransitions
+    type situationsInState = Situations of StateSpace.situation list | NotReachable
+    type coursesBetweenSituations = Courses of State.transFun list | NoTransitions
     type systemSituationMatrix = situationsInState array
     type systemTransformationMatrix = coursesBetweenSituations SquareMatrix.matrix
 
     let convolute situations courses = 
         match situations,courses with
-        | NotReachable,NoTransitions -> NotReachable
-        | Situations _, NoTransitions -> NotReachable
-        | NotReachable, Courses _ -> NotReachable
+        | NotReachable,NoTransitions -> []
+        | Situations _, NoTransitions -> []
+        | NotReachable, Courses _ -> []
         | Situations sits, Courses trans_funs -> 
-            let result = Seq.collect
-                            (
-                                fun sit -> 
-                                    let new_situations = Seq.choose 
-                                                            (fun trans_fun -> StateSpace.advanceSituation sit trans_fun |> StateSpace.filteringFun) 
-                                                            trans_funs
-                                    new_situations
-                            )
-                            sits
-            Situations result
-    let private _mergeSituationsInState sits1 sits2 = 
+            List.collect
+                (
+                    fun sit -> 
+                        let new_situations = List.choose 
+                                                (fun trans_fun -> StateSpace.advanceSituation sit trans_fun |> StateSpace.filteringFun) 
+                                                trans_funs
+                        new_situations
+                )
+                sits
+    (*let private _mergeSituationsInState sits1 sits2 = 
         match sits1, sits2 with
         | NotReachable, NotReachable -> NotReachable
         | Situations s1, NotReachable -> Situations s1
         | NotReachable, Situations s2 -> Situations s2
-        | Situations s1, Situations s2 -> Situations (Seq.append s1 s2)
+        | Situations s1, Situations s2 -> Situations (List.append s1 s2)*)
     let private _limitSituationsInState transformer maxItems allSituationsInState =
-        match allSituationsInState with
-        | NotReachable -> NotReachable
-        | Situations sits ->
-                            (*let generatorInitState = filter sits
-                            Situations (Seq.unfold 
-                                                (fun (subseq,n) -> 
-                                                    if not (Seq.isEmpty subseq) && n<maxItems then
-                                                        let toReturn = Seq.head subseq
-                                                        let tail = Seq.tail subseq
-                                                        Some (toReturn,(tail,n+1))
-                                                    else
-                                                        None
-                                                )
-                                                (generatorInitState,0)
-                                        )
-                            *)
-                            let transformedSits = transformer sits
-                            Situations (Seq.truncate maxItems transformedSits)
+        let transformedSits = transformer allSituationsInState
+        List.truncate maxItems transformedSits
     let private _multiply isLimited filterFun limitSize situationsMX transMX =
         Array.Parallel.mapi 
             (
-                fun toState_id _ ->
-                    let column_of_functions_to_state = SquareMatrix.column transMX toState_id
-                    let newSituationsInState_toFlatten =
-                        Array.mapi
+                fun targetState _ ->
+                    let columnOfTransitionFunctionsToTargetState = SquareMatrix.column transMX targetState
+
+                    let allPartialsResultsSeparate =
+                        Array.Parallel.mapi
                             (
-                                fun fromState_id situationsInState ->
-                                    let transitionsFromState_id = (Array.get column_of_functions_to_state fromState_id)
-                                    convolute
-                                        situationsInState
-                                        transitionsFromState_id
+                                fun sourceState currentSituationsInState ->
+                                    let transitionsFromSourceState = (Array.get columnOfTransitionFunctionsToTargetState sourceState)
+                                    let partialResult =
+                                            convolute
+                                                currentSituationsInState
+                                                transitionsFromSourceState
+                                    partialResult
                             )
                             situationsMX
-                    let new_situations_in_state = Array.fold
+                    (*let new_situations_in_state = Array.fold
                                                     (fun res_situation sits_to_merge -> _mergeSituationsInState res_situation sits_to_merge ) 
                                                     NotReachable 
-                                                    newSituationsInState_toFlatten
-                    if isLimited then
-                        new_situations_in_state |> _limitSituationsInState filterFun limitSize
-                    else
-                        new_situations_in_state
+                                                    newSituationsInState_toFlatten*)
+                    let allPartialsResults = List.concat allPartialsResultsSeparate
+                    let resultRaw = 
+                        if isLimited then
+                            _limitSituationsInState filterFun limitSize allPartialsResults
+                        else
+                            allPartialsResults
+                    let result =
+                        if List.isEmpty resultRaw then
+                            NotReachable
+                        else
+                            Situations resultRaw
+                    result
             )
             (Array.create transMX.length [])
     let multiply (situationsMX:systemSituationMatrix) transMX =
@@ -79,7 +73,7 @@ module StateSpacePolicy =
         //let config = {limit=true;filter=filterFun}
         _multiply true filterFun resultSize situationsMX transMX
     let initSituationInState (sit:StateSpace.situation) =
-        let res =  Seq.singleton sit
+        let res =  [sit]
         (Situations res)
     let initSituationMatrix sis initStateIdx numOfStates =
         let result = Array.create numOfStates NotReachable
