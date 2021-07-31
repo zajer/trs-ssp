@@ -1,0 +1,13 @@
+{
+  "numberOfAgents": 777,
+  "numberOfStates": 123,
+  "transitionFunctionsFile": "a.csv",
+  "destinationStatesFile": "x.csv",
+  "numberOfSteps": 321,
+  "outputFilePrefix": "r3",
+  "resultStrategy": "first:3",
+  "task": "ff",
+  "destinationStrategy": "random",
+  "forceNoIdling": false,
+  "printSATs":true
+}

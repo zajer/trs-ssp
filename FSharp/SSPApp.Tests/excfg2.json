@@ -1,0 +1,13 @@
+{
+  "numberOfAgents": 3,
+  "numberOfStates": 777,
+  "transitionFunctionsFile": "abc1xyz.csv",
+  "destinationStatesFile": "xyz2abc.csv",
+  "numberOfSteps": 123,
+  "outputFilePrefix": "result2",
+  "resultStrategy": "all",
+  "task": "search until count",
+  "destinationStrategy": "ff",
+  "forceNoIdling": true,
+  "printSATs":false
+}

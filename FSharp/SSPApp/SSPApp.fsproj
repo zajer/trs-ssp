@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Config.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SSPLib\SSPLib.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="./example_data/ex1-config.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/dest_states_ex1.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/trans_funs_ex1.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/ex2-config.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/trans_funs_ex2.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/superslim_dest_states.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/superslim_ssp_input.csv" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="./example_data/superslim-config.json" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+</Project>
